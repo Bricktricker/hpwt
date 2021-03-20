@@ -1,7 +1,18 @@
 #include <iostream>
 #include <mpi.h>
+#include <omp.h>
+
+#define PARENT_TID 0
 
 int main() {
-    std::cout << "test\n";
-    return 0;
+int tid;
+  #pragma omp parallel
+  {
+    tid = omp_get_thread_num();
+    if(tid == PARENT_TID)
+      printf("Parent: %d threads running\n", omp_get_num_threads());
+    else
+      printf("Thread# %d: Hello world\n", tid);
+  }
+  return EXIT_SUCCESS;
 }

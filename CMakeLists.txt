@@ -11,6 +11,11 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 find_package(MPI REQUIRED)
 target_link_libraries(hpwt PUBLIC MPI::MPI_CXX)
 
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(hpwt PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 #source: https://github.com/lefticus/cpp_starter_project/blob/master/cmake/CompilerWarnings.cmake
 set(CLANG_WARNINGS
       -Wall
@@ -38,7 +43,7 @@ set(GCC_WARNINGS
       -Wduplicated-branches # warn if if / else branches have duplicated code
       -Wlogical-op # warn about logical operations being used where bitwise were probably wanted
       -Wuseless-cast # warn if you perform a cast to the same type
-      -fopenmp # enable openMP
+      #-fopenmp # enable openMP
   )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
