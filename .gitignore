@@ -1,6 +1,7 @@
-# Prerequisites
-*.d
+#build folder
+build/
 
+# ---> C++
 # Compiled Object files
 *.slo
 *.lo
@@ -18,7 +19,6 @@
 
 # Fortran module files
 *.mod
-*.smod
 
 # Compiled Static libraries
 *.lai
@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# ---> VisualStudioCode
+.settings
+
+
+# ---> CMake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
