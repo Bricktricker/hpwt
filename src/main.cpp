@@ -20,10 +20,11 @@ int main()
     wx_pc<uint8_t, true> tree;
     const auto output = tree.compute(vec.data(), vec.size(), levels);
 
-    const auto& bvs = output.bvs();
+    const auto &bvs = output.bvs();
     std::cout << "levels: " << bvs.levels() << '\n';
-    for(size_t i = 0; i < bvs.levels(); i++) {
-        std::cout << "level " << i <<" level_bit_size: " << bvs.level_bit_size(i) << '\n';
+    for (size_t i = 0; i < bvs.levels(); i++)
+    {
+        std::cout << "level " << i << " level_bit_size: " << bvs.level_bit_size(i) << '\n';
         const auto level = bvs[i];
         const auto v = level[0];
         std::cout << std::bitset<64>(v) << '\n';
