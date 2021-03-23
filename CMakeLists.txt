@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(hpwt)
 
-set(CXX_STANDARD c++14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(src)
 
@@ -13,6 +14,10 @@ target_link_libraries(hpwt PUBLIC MPI::MPI_CXX)
 
 find_package(OpenMP)
 target_link_libraries(hpwt PUBLIC OpenMP::OpenMP_CXX)
+
+set(CMAKE_CXX_FLAGS_RELEASE
+  "${CMAKE_CXX_FLAGS_RELEASE} -O3 -funroll-loops -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb -DDEBUG")
 
 #source: https://github.com/lefticus/cpp_starter_project/blob/master/cmake/CompilerWarnings.cmake
 set(CLANG_WARNINGS
@@ -27,11 +32,11 @@ set(CLANG_WARNINGS
       -Woverloaded-virtual # warn if you overload (not override) a virtual function
       -Wpedantic # warn if non-standard C++ is used
       -Wconversion # warn on type conversions that may lose data
-      -Wsign-conversion # warn on sign conversions
+#      -Wsign-conversion # warn on sign conversions
       -Wnull-dereference # warn if a null dereference is detected
       -Wdouble-promotion # warn if float is implicit promoted to double
       -Wformat=2 # warn on security issues around functions that format output (ie printf)
-      -Werror #Warnings as errors
+#      -Werror #Warnings as errors
   )
 
 set(GCC_WARNINGS
@@ -50,3 +55,5 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 target_compile_options(hpwt PRIVATE ${PROJECT_WARNINGS})
+
+MESSAGE(STATUS "Built Type: " ${CMAKE_BUILD_TYPE} )

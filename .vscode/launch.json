@@ -7,9 +7,6 @@
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "args": [
-                "-a",
-                "1",
-                "input.txt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -27,10 +24,7 @@
             "args": [
                 "-np",
                 "4",
-                "${command:cmake.launchTargetPath}",
-                "inputLarge.txt",
-                "-a",
-                "1"
+                "${command:cmake.launchTargetPath}"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
