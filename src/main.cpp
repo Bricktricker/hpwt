@@ -7,17 +7,26 @@
 #include "util/alphabet_util.hpp"
 #include "util/decode.hpp"
 #include "wx_pc.hpp"
+#include "wx_ppc.hpp"
 
-int main()
-{
+using wt_pc = wx_pc<uint8_t, true>;
+using wt_ppc = wx_ppc<uint8_t, true>;
+
+std::vector<uint8_t> get_small_input() {
     const std::string s = "abracadabra";
-    auto vec = std::vector<uint8_t>(s.begin(), s.end());
+    std::vector<uint8_t> vec(s.begin(), s.end());
     std::cout << "input:";
     for (auto i = vec.begin(); i != vec.end(); ++i)
         std::cout << static_cast<int>(*i) << ' ';
     std::cout << '\n';
+    return vec;
+}
+
+template<typename Algorithm>
+void do_compute(const std::vector<uint8_t>& vec)
+{
     const uint64_t levels = no_reduction_alphabet(vec);
-    wx_pc<uint8_t, true> tree;
+    Algorithm tree;
     const auto output = tree.compute(vec.data(), vec.size(), levels);
 
     const auto &bvs = output.bvs();
@@ -32,6 +41,11 @@ int main()
 
     const auto decoded = decode_wt(bvs, vec.size());
     std::cout << "decoded: " << decoded << '\n';
+}
 
+int main()
+{
+    const auto input = get_small_input();
+    do_compute<wt_ppc>(input);
     return EXIT_SUCCESS;
 }
