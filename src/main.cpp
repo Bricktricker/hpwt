@@ -1,7 +1,9 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <bitset>
+#include <iterator>
 #include <mpi.h>
 #include "construction/pc.hpp"
 #include "util/alphabet_util.hpp"
@@ -12,7 +14,8 @@
 using wt_pc = wx_pc<uint8_t, true>;
 using wt_ppc = wx_ppc<uint8_t, true>;
 
-std::vector<uint8_t> get_small_input() {
+std::vector<uint8_t> get_small_input()
+{
     const std::string s = "abracadabra";
     std::vector<uint8_t> vec(s.begin(), s.end());
     std::cout << "input:";
@@ -22,7 +25,19 @@ std::vector<uint8_t> get_small_input() {
     return vec;
 }
 
-template<typename Algorithm>
+std::vector<uint8_t> get_file_input(const std::string& filePath)
+{
+    std::ifstream is(filePath);
+    if (!is)
+    {
+        std::cerr << "Could not open file " << filePath << '\n';
+        throw std::runtime_error("Could not open file");
+    }
+    const std::vector<uint8_t> data((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+    return data;
+}
+
+template <typename Algorithm>
 void do_compute(const std::vector<uint8_t>& vec)
 {
     const uint64_t levels = no_reduction_alphabet(vec);
@@ -34,18 +49,32 @@ void do_compute(const std::vector<uint8_t>& vec)
     for (size_t i = 0; i < bvs.levels(); i++)
     {
         std::cout << "level " << i << " level_bit_size: " << bvs.level_bit_size(i) << '\n';
-        const auto level = bvs[i];
-        const auto v = level[0];
-        std::cout << std::bitset<64>(v) << '\n';
+        if (bvs.level_bit_size(i) <= 64)
+        {
+            const auto level = bvs[i];
+            const auto v = level[0];
+            std::cout << std::bitset<64>(v) << '\n';
+        }
     }
 
-    const auto decoded = decode_wt(bvs, vec.size());
-    std::cout << "decoded: " << decoded << '\n';
+    if (vec.size() <= 64)
+    {
+        const auto decoded = decode_wt(bvs, vec.size());
+        std::cout << "decoded: " << decoded << '\n';
+    }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    const auto input = get_small_input();
+    std::vector<uint8_t> input;
+    if (argc < 2)
+    {
+        input = get_small_input();
+    }
+    else
+    {
+        input = get_file_input(argv[1]);
+    }
     do_compute<wt_ppc>(input);
     return EXIT_SUCCESS;
 }
