@@ -24,7 +24,10 @@ else()
 endif()
 
 find_package(MPI REQUIRED)
+find_package(TLX REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
+include_directories(${TLX_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Compiler flags
 set(CMAKE_CXX_FLAGS
@@ -34,6 +37,7 @@ set(CMAKE_CXX_FLAGS_RELEASE
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb -DDEBUG")
 
 add_subdirectory(src)
+add_subdirectory(distwt)
 
 #source: https://github.com/lefticus/cpp_starter_project/blob/master/cmake/CompilerWarnings.cmake
 set(CLANG_WARNINGS

@@ -4,6 +4,9 @@
 #include "wx_pc.hpp"
 #include "wx_ppc.hpp"
 #include <bitset>
+#include <distwt/apps/mpi_dd.hpp>
+#include <distwt/mpi/context.hpp>
+#include <distwt/mpi/uint_types.hpp>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -11,8 +14,8 @@
 #include <string>
 #include <vector>
 
-using wt_pc = wx_pc<uint8_t, true>;
-using wt_ppc = wx_ppc<uint8_t, true>;
+using wt_pc_pwm = wx_pc<uint8_t, true>;
+using wt_ppc_pwm = wx_ppc<uint8_t, true>;
 
 std::vector<uint8_t> get_small_input() {
     const std::string s = "abracadabra";
@@ -42,6 +45,7 @@ void do_compute(const std::vector<uint8_t>& vec) {
     const auto output = tree.compute(vec.data(), vec.size(), levels);
 
     const auto& bvs = output.bvs();
+    std::cout << "Algorithm: " << typeid(tree).name() << '\n';
     std::cout << "levels: " << bvs.levels() << '\n';
     for (size_t i = 0; i < bvs.levels(); i++) {
         std::cout << "level " << i << " level_bit_size: " << bvs.level_bit_size(i) << '\n';
@@ -58,7 +62,15 @@ void do_compute(const std::vector<uint8_t>& vec) {
     }
 }
 
+void computeDist(int argc, char* argv[]) {
+    MPIContext ctx(&argc, &argv);
+    mpi_dd::template start<uint8_t>(ctx, "test_input.txt", SIZE_MAX /* prefix */, 0 /* rdbufsize */,
+                                    false /* effective input */, "" /* Output */);
+}
+
 int main(int argc, char* argv[]) {
+    computeDist(argc, argv);
+    /*
     std::vector<uint8_t> input;
     if (argc < 2) {
         input = get_small_input();
@@ -66,5 +78,6 @@ int main(int argc, char* argv[]) {
         input = get_file_input(argv[1]);
     }
     do_compute<wt_ppc>(input);
+    */
     return EXIT_SUCCESS;
 }
