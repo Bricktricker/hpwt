@@ -10,7 +10,6 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 
 using permutation_type = std::vector<uint64_t> (*)(const uint64_t levels);
 

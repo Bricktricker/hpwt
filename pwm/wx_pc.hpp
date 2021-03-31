@@ -10,10 +10,11 @@
 
 #include <vector>
 
-#include "construction/ctx_generic.hpp"
-#include "construction/pc.hpp"
-#include "construction/wavelet_structure.hpp"
-#include "wx_base.hpp"
+#include <pwm/construction/ctx_generic.hpp>
+#include <pwm/construction/pc.hpp>
+#include <pwm/construction/wavelet_structure.hpp>
+
+#include <pwm/wx_base.hpp>
 
 template <typename AlphabetType, bool is_tree_>
 class wx_pc : public wx_in_out_external<false, false>  {
@@ -32,7 +33,7 @@ public:
                             bit_vectors>;
 
   template <typename InputType>
-  static wavelet_structure_tree compute(const InputType* text,
+  static wavelet_structure_tree compute(const InputType& text,
                                    const uint64_t size,
                                    const uint64_t levels) {
 

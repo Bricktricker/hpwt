@@ -11,8 +11,8 @@
 #include <iostream>
 #include <string>
 
-#include "../construction/wavelet_structure.hpp"
-#include "debug.hpp"
+#include <pwm/construction/wavelet_structure.hpp>
+#include <pwm/util/debug.hpp>
 
 
 template <typename bv_type>

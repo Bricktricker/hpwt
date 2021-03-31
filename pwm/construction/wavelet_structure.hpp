@@ -13,9 +13,8 @@
 #include <typeinfo>
 #include <vector>
 
-#include "../arrays/bit_vectors.hpp"
-//#include "huffman/huff_codes.hpp"
-#include "../util/debug_assert.hpp"
+#include <pwm/arrays/bit_vectors.hpp>
+#include <pwm/util/debug_assert.hpp>
 
 class wavelet_structure;
 
@@ -88,5 +87,7 @@ private:
     return zeros_;
   }
 };
+
+// removed wavelet_structure_tree_huffman, wavelet_structure_matrix_huffman, wavelet_structure
 
 /******************************************************************************/

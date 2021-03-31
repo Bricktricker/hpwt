@@ -11,10 +11,10 @@
 
 #include <omp.h>
 
-#include "../arrays/span.hpp"
-#include "building_blocks.hpp"
-#include "wavelet_structure.hpp"
-#include "../util/common.hpp"
+#include <pwm/arrays/span.hpp>
+#include <pwm/construction/building_blocks.hpp>
+#include <pwm/construction/wavelet_structure.hpp>
+#include <pwm/util/common.hpp>
 
 template <typename AlphabetType, typename ContextType>
 void ppc(AlphabetType const* text,

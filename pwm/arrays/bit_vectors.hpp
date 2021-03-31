@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "flat_two_dim_array.hpp"
+#include <pwm/arrays/flat_two_dim_array.hpp>
 
 template <bool requires_initialization_>
 struct bit_vectors_config {

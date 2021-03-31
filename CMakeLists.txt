@@ -38,6 +38,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb -DDEBUG")
 
 add_subdirectory(src)
 add_subdirectory(distwt)
+add_subdirectory(pwm)
 
 #source: https://github.com/lefticus/cpp_starter_project/blob/master/cmake/CompilerWarnings.cmake
 set(CLANG_WARNINGS

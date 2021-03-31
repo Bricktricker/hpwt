@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include "construction/building_blocks.hpp"
-#include "construction/ctx_generic.hpp"
-#include "construction/ppc.hpp"
-#include "construction/wavelet_structure.hpp"
-#include "util/common.hpp"
-#include "wx_base.hpp"
+#include <pwm/construction/building_blocks.hpp>
+#include <pwm/construction/ctx_generic.hpp>
+#include <pwm/construction/ppc.hpp>
+#include <pwm/construction/wavelet_structure.hpp>
+#include <pwm/util/common.hpp>
+
+#include <pwm/wx_base.hpp>
 
 template <typename AlphabetType, bool is_tree_>
 class wx_ppc : public wx_in_out_external<false, false>  {

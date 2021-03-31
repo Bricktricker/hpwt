@@ -11,31 +11,11 @@
 
 #include <type_traits>
 
-#include "../arrays/bit_vectors.hpp"
+#include <pwm/arrays/bit_vectors.hpp>
+#include <pwm/arrays/helper_array.hpp>
+#include <pwm/arrays/pow2_array.hpp>
 
-struct helper_array_config {
-  static uint64_t level_size(const uint64_t, const uint64_t size) {
-    return size;
-  }
-
-  static constexpr bool is_bit_vector = false;
-  static constexpr bool requires_initialization = true;
-}; // struct helper_array_config
-
-using helper_array = flat_two_dim_array<uint64_t, helper_array_config>;
-
-struct pow2_array_config {
-  static uint64_t level_size(const uint64_t level) {
-    return 1ULL << level;
-  };
-
-  static constexpr bool is_bit_vector = false;
-  static constexpr bool requires_initialization = true;
-}; // struct pow2_array_config
-
-using pow2_array = flat_two_dim_array<uint64_t, pow2_array_config>;
-
-#include "../util/permutation.hpp"
+#include <pwm/util/permutation.hpp>
 
 namespace ctx_options {
 template <bool is_tree>

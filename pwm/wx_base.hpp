@@ -20,6 +20,6 @@ public:
   static constexpr bool external_out = external_out_;
   static constexpr bool stats_support = stats_support_;
   static constexpr bool is_inplace = is_inplace_;
-}; // class wx_in_out_external
+}; // class wx_ps
 
 /******************************************************************************/

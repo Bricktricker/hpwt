@@ -14,9 +14,9 @@
 #include <stdint.h>
 #include <type_traits>
 #include <vector>
-#include "debug_assert.hpp"
+#include <pwm/util/debug_assert.hpp>
 
-#include "permutation.hpp"
+#include <pwm/util/permutation.hpp>
 
 constexpr uint64_t word_size(uint64_t size) {
   return (size + 63ULL) >> 6;

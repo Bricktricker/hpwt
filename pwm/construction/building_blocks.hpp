@@ -10,7 +10,7 @@
 
 #include <omp.h>
 
-#include "../arrays/span.hpp"
+#include <pwm/arrays/span.hpp>
 
 // NB: This formulation as an inline-always function
 // has been roghly tested to produce the least amount of machine code if

@@ -11,8 +11,8 @@
 #include <cstring>
 #include <iostream>
 
-#include "../util/common.hpp"
-#include "../util/debug_assert.hpp"
+#include <pwm/util/common.hpp>
+#include <pwm/util/debug_assert.hpp>
 
 template <typename T>
 class span {

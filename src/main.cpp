@@ -1,8 +1,3 @@
-#include "construction/pc.hpp"
-#include "util/alphabet_util.hpp"
-#include "util/decode.hpp"
-#include "wx_pc.hpp"
-#include "wx_ppc.hpp"
 #include <bitset>
 #include <distwt/apps/mpi_dd.hpp>
 #include <distwt/mpi/context.hpp>
@@ -11,6 +6,10 @@
 #include <iostream>
 #include <iterator>
 #include <mpi.h>
+#include <pwm/util/alphabet_util.hpp>
+#include <pwm/util/decode.hpp>
+#include <pwm/wx_pc.hpp>
+#include <pwm/wx_ppc.hpp>
 #include <string>
 #include <vector>
 
@@ -69,15 +68,13 @@ void computeDist(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    computeDist(argc, argv);
-    /*
+    //computeDist(argc, argv);
     std::vector<uint8_t> input;
     if (argc < 2) {
         input = get_small_input();
     } else {
         input = get_file_input(argv[1]);
     }
-    do_compute<wt_ppc>(input);
-    */
+    do_compute<wt_pc_pwm>(input);
     return EXIT_SUCCESS;
 }

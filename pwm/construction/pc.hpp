@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "building_blocks.hpp"
+#include <pwm/construction/building_blocks.hpp>
 
 template <typename AlphabetType, typename ContextType>
 void pc(AlphabetType const* text,
