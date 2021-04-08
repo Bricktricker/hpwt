@@ -17,12 +17,8 @@ using wt_pc_pwm = wx_pc<uint8_t, true>;
 using wt_ppc_pwm = wx_ppc<uint8_t, true>;
 
 std::vector<uint8_t> get_small_input() {
-    const std::string s = "abracadabra";
+    const std::string s = "abcdabcdefefefghghab";
     std::vector<uint8_t> vec(s.begin(), s.end());
-    std::cout << "input:";
-    for (auto i = vec.begin(); i != vec.end(); ++i)
-        std::cout << static_cast<int>(*i) << ' ';
-    std::cout << '\n';
     return vec;
 }
 
@@ -38,8 +34,18 @@ std::vector<uint8_t> get_file_input(const std::string& filePath) {
 }
 
 template <typename Algorithm>
-void do_compute(const std::vector<uint8_t>& vec) {
+void do_compute(std::vector<uint8_t>& vec) {
+#define REDUCE_VEV
+#ifdef REDUCE_VEV
+    const auto max_char = reduce_textbook(vec);
+    const uint64_t levels = levels_for_max_char(max_char);
+#else
     const uint64_t levels = no_reduction_alphabet(vec);
+#endif
+    std::cout << "input:";
+    for (auto i = vec.begin(); i != vec.end(); ++i)
+        std::cout << static_cast<int>(*i) << ' ';
+    std::cout << '\n';
     Algorithm tree;
     const auto output = tree.compute(vec.data(), vec.size(), levels);
 
@@ -63,12 +69,15 @@ void do_compute(const std::vector<uint8_t>& vec) {
 
 void computeDist(int argc, char* argv[]) {
     MPIContext ctx(&argc, &argv);
-    mpi_dd::template start<uint8_t>(ctx, "test_input.txt", SIZE_MAX /* prefix */, 0 /* rdbufsize */,
-                                    false /* effective input */, "" /* Output */);
+    mpi_dd::template start<uint8_t>(ctx, "small_input_file.bin", SIZE_MAX /* prefix */, 0 /* rdbufsize */,
+                                    false /* effective input */, "output/out" /* Output */);
 }
 
 int main(int argc, char* argv[]) {
-    //computeDist(argc, argv);
+#define USE_MPI
+#ifdef USE_MPI
+    computeDist(argc, argv);
+#else
     std::vector<uint8_t> input;
     if (argc < 2) {
         input = get_small_input();
@@ -76,5 +85,6 @@ int main(int argc, char* argv[]) {
         input = get_file_input(argv[1]);
     }
     do_compute<wt_pc_pwm>(input);
+#endif
     return EXIT_SUCCESS;
 }

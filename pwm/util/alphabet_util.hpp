@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 template <typename AlphabetType>
 static uint64_t reduce_alphabet(std::vector<AlphabetType>& text) {
@@ -40,6 +41,22 @@ static uint64_t reduce_alphabet(std::vector<AlphabetType>& text) {
     }
   }
   return max_char;
+}
+
+template <typename AlphabetType>
+static uint64_t reduce_textbook(std::vector<AlphabetType>& text) {
+  std::set<AlphabetType> presentChars(text.begin(), text.end());
+  std::vector<AlphabetType> charOrder(presentChars.begin(), presentChars.end());
+  std::unordered_map<AlphabetType, AlphabetType> word_list;
+  for(size_t i = 0; i < charOrder.size(); i++) {
+    word_list[charOrder[i]] = static_cast<AlphabetType>(i);
+  }
+
+  for (auto& c : text) {
+    c = word_list.find(c)->second;
+  }
+
+  return word_list.find(charOrder.back())->second;
 }
 
 // removed stxxlvector implementation
