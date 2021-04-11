@@ -17,7 +17,7 @@ using wt_pc_pwm = wx_pc<uint8_t, true>;
 using wt_ppc_pwm = wx_ppc<uint8_t, true>;
 
 std::vector<uint8_t> get_small_input() {
-    const std::string s = "abcdabcdefefefghghab";
+    const std::string s = "abcdabcdefefefghghab"; //https://www.researchgate.net/figure/The-wavelet-tree-for-Sabcdabcdefefefghghab-Sa-b-c-d-e-f-g-h_fig4_266871959
     std::vector<uint8_t> vec(s.begin(), s.end());
     return vec;
 }
@@ -69,7 +69,7 @@ void do_compute(std::vector<uint8_t>& vec) {
 
 void computeDist(int argc, char* argv[]) {
     MPIContext ctx(&argc, &argv);
-    mpi_dd::template start<uint8_t>(ctx, "small_input_file.bin", SIZE_MAX /* prefix */, 0 /* rdbufsize */,
+    mpi_dd::template start<uint8_t>(ctx, "small_input_file.bin", SIZE_MAX /* prefix */, 0 /* rdbufsize */, //small_input_file.bin
                                     false /* effective input */, "output/out" /* Output */);
 }
 

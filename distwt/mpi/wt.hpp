@@ -27,4 +27,6 @@ public:
 
         construction_algorithm(m_bits, *this);
     }
+
+    inline const bits_t& raw_bits() const noexcept { return m_bits; };
 };

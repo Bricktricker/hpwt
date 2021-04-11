@@ -45,6 +45,10 @@ static uint64_t reduce_alphabet(std::vector<AlphabetType>& text) {
 
 template <typename AlphabetType>
 static uint64_t reduce_textbook(std::vector<AlphabetType>& text) {
+  if(text.empty()) {
+    return 0;
+  }
+
   std::set<AlphabetType> presentChars(text.begin(), text.end());
   std::vector<AlphabetType> charOrder(presentChars.begin(), presentChars.end());
   std::unordered_map<AlphabetType, AlphabetType> word_list;
