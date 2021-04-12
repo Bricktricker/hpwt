@@ -11,6 +11,7 @@
 #include <pwm/wx_pc.hpp>
 #include <pwm/wx_ppc.hpp>
 #include <string>
+#include "validate_distwt.hpp"
 #include <vector>
 
 using wt_pc_pwm = wx_pc<uint8_t, true>;
@@ -69,8 +70,13 @@ void do_compute(std::vector<uint8_t>& vec) {
 
 void computeDist(int argc, char* argv[]) {
     MPIContext ctx(&argc, &argv);
-    mpi_dd::template start<uint8_t>(ctx, "small_input_file.bin", SIZE_MAX /* prefix */, 0 /* rdbufsize */, //small_input_file.bin
-                                    false /* effective input */, "output/out" /* Output */);
+    const std::string output("output/out");
+    const std::string input("test_input.txt");
+    mpi_dd::template start<uint8_t>(ctx, input, SIZE_MAX /* prefix */, 0 /* rdbufsize */, //small_input_file.bin
+                                    false /* effective input (unused) */, output);
+    if(ctx.is_master()) {
+        validate_distwt<uint8_t>(input, output, ctx.num_workers(), 6);
+    }
 }
 
 int main(int argc, char* argv[]) {

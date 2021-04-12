@@ -20,4 +20,8 @@ public:
 
     inline ~EffectiveAlphabetBase() {
     }
+
+    inline sym_t map(const sym_t value) const {
+        return m_map.at(value);
+    }
 };
