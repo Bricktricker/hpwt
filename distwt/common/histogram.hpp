@@ -84,7 +84,7 @@ public:
         w.write<size_t>(m_entries.size()); // num entries
         for(auto& e : m_entries) {
             w.write<sym_t>(e.first); // symbol
-            w.write<size_t>(e.second);  // count
+            w.write<idx_t>(e.second);  // count
         }
     }
 
