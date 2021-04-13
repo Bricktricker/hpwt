@@ -75,7 +75,7 @@ void computeDist(int argc, char* argv[]) {
     mpi_dd::template start<uint8_t>(ctx, input, SIZE_MAX /* prefix */, 0 /* rdbufsize */, //small_input_file.bin
                                     false /* effective input (unused) */, output);
     if(ctx.is_master()) {
-        validate_distwt<uint8_t>(input, output, ctx.num_workers(), 6);
+        validate_distwt<uint8_t>(input, output, ctx.num_workers());
     }
 }
 

@@ -6,12 +6,15 @@
 #include <tlx/math/div_ceil.hpp>
 
 template <typename sym_t>
-static bool validate_distwt(const std::string& input,
-                            const std::string& output,
-                            const size_t comm_size,
-                            const size_t tree_height) {
+static bool
+validate_distwt(const std::string& input, const std::string& output, const size_t comm_size) {
     const size_t input_size = util::file_size(input) / sizeof(sym_t);
     const auto size_per_worker = tlx::div_ceil(input_size, comm_size);
+
+    Histogram<sym_t> hist(output + "." + WaveletTreeBase::histogram_extension());
+    EffectiveAlphabetBase<sym_t> ea(hist);
+
+    const size_t tree_height = tlx::integer_log2_ceil(hist.size() - 1); // WaveletTreeBase::wt_height
 
     // read wavelet tree
     WaveletTree::bits_t wt;
@@ -42,16 +45,6 @@ static bool validate_distwt(const std::string& input,
             bits_left -= std::min(size_per_worker, bits_left);
         }
     }
-
-    if (wt[0].size() <= 64) {
-        std::cout << "loaded tree:\n";
-        for (const auto level : wt) {
-            std::cout << level << '\n';
-        }
-    }
-
-    Histogram<sym_t> hist(output + "." + WaveletTreeBase::histogram_extension());
-    EffectiveAlphabetBase<sym_t> ea(hist);
 
     // reconstruct input file and compare with input file
     binary::FileReader file_reader(input);
