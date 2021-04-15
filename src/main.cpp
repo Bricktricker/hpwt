@@ -1,3 +1,4 @@
+#include "validate_distwt.hpp"
 #include <bitset>
 #include <distwt/apps/mpi_dd.hpp>
 #include <distwt/mpi/context.hpp>
@@ -11,14 +12,14 @@
 #include <pwm/wx_pc.hpp>
 #include <pwm/wx_ppc.hpp>
 #include <string>
-#include "validate_distwt.hpp"
 #include <vector>
 
 using wt_pc_pwm = wx_pc<uint8_t, true>;
 using wt_ppc_pwm = wx_ppc<uint8_t, true>;
 
 std::vector<uint8_t> get_small_input() {
-    const std::string s = "abcdabcdefefefghghab"; //https://www.researchgate.net/figure/The-wavelet-tree-for-Sabcdabcdefefefghghab-Sa-b-c-d-e-f-g-h_fig4_266871959
+    // https://www.researchgate.net/figure/The-wavelet-tree-for-Sabcdabcdefefefghghab-Sa-b-c-d-e-f-g-h_fig4_266871959
+    const std::string s = "abcdabcdefefefghghab";
     std::vector<uint8_t> vec(s.begin(), s.end());
     return vec;
 }
@@ -71,10 +72,10 @@ void do_compute(std::vector<uint8_t>& vec) {
 void computeDist(int argc, char* argv[]) {
     MPIContext ctx(&argc, &argv);
     const std::string output("output/out");
-    const std::string input("test_input.txt");
-    mpi_dd::template start<uint8_t>(ctx, input, SIZE_MAX /* prefix */, 0 /* rdbufsize */, //small_input_file.bin
+    const std::string input("small_text_input.txt");
+    mpi_dd::template start<uint8_t>(ctx, input, SIZE_MAX /* prefix */, 0 /* rdbufsize */,
                                     false /* effective input (unused) */, output);
-    if(ctx.is_master()) {
+    if (ctx.is_master()) {
         validate_distwt<uint8_t>(input, output, ctx.num_workers());
     }
 }

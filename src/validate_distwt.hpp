@@ -1,5 +1,7 @@
 #include <distwt/common/binary_io.hpp>
 #include <distwt/common/util.hpp>
+#include <distwt/common/effective_alphabet.hpp>
+#include <distwt/common/bv64.hpp>
 #include <distwt/mpi/wt.hpp>
 #include <iomanip>
 #include <string>
