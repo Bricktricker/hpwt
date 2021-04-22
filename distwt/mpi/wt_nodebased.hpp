@@ -36,34 +36,6 @@ public:
             });
     }
 
-    /*
-    template<typename sym_t>
-    WaveletMatrix merge_to_matrix(
-        MPIContext& ctx,
-        const FilePartitionReader<sym_t>& input,
-        const Histogram<sym_t>& hist,
-        bool discard) {
-
-        return WaveletMatrix(hist, // TODO: avoid recomputations!
-            [&](WaveletMatrix::bits_t& bits, WaveletMatrix::z_t& z, const WaveletMatrixBase& wm){
-                merge_impl(ctx, bits, wm, input, hist, discard, true);
-
-                // compute Z values from histogram
-                const size_t sigma = hist.size();
-                size_t mask = 1ULL << (height() - 1);
-
-                for(size_t level = 0; level < height(); level++) {
-                    size_t num0 = 0;
-                    for(size_t i = 0; i < sigma; i++) {
-                        if((i & mask) == 0) num0 += hist.entries[i].second;
-                    }
-                    z[level] = num0;
-                    mask >>= 1ULL;
-                }
-            });
-    }
-    */
-
 private:
     template<typename sym_t, typename bits_t, typename target_t>
     void merge_impl(
