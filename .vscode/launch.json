@@ -10,7 +10,9 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {"name": "OMP_NUM_THREADS", "value": "1"}
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "preLaunchTask": "build with CMake",
@@ -27,7 +29,7 @@
             "program": "/usr/bin/mpirun",
             "args": [
                 "-np",
-                "4",
+                "3",
                 "${command:cmake.launchTargetPath}"
             ],
             "stopAtEntry": false,

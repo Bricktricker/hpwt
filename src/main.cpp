@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     } else {
         input = get_file_input(argv[1]);
     }
-    do_compute<wt_pc_pwm>(input);
+    do_compute<wt_ppc_pwm>(input);
 #endif
     return EXIT_SUCCESS;
 }
