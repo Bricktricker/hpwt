@@ -11,7 +11,7 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
-                {"name": "OMP_NUM_THREADS", "value": "1"}
+                //{"name": "OMP_NUM_THREADS", "value": "1"}
             ],
             "externalConsole": false,
             "MIMode": "gdb",

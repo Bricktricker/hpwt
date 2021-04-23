@@ -38,6 +38,8 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
 
     assert(h >= 1);
 
+    std::cout << "Using " << omp_get_max_threads() << " omp threads\n";
+
     // compute initial histogram
     {
         const uint64_t alphabet_size = sigma;
@@ -73,17 +75,9 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
             }
         }
 
-        // kopiere bits aus bv[0] nach root
+        // copy bits from bv[0] to root
         for (size_t i = 0; i < n; i++) {
             root[i] = bit_at(bv[0], i);
-        }
-    }
-
-    // hist ist korrekt
-    {
-        const span<uint64_t> histTmp = ctx.hist_at_level(h);
-        for (size_t i = 0; i < histTmp.size(); i++) {
-            std::cout << i << ' ' << histTmp[i] << '\n';
         }
     }
 
@@ -102,59 +96,30 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
         }
     }
 
-    {
-        const span<uint64_t> histTmp = ctx.hist_at_level(h);
-        for (size_t i = 0; i < histTmp.size(); i++) {
-            std::cout << i << ' ' << histTmp[i] << '\n';
-        }
-    }
-
     // compute histogram and root node
     auto&& hist = ctx.hist_at_level(h);
-    /*
-    {
-        const size_t test = 1ULL << (glob_h - 1 - root_level); //4 = 1 << (3 - 1 - 0)
 
-        auto& root = bits[root_node_id-1];
-        root.resize(n);
-
-        for(size_t i = 0; i < n; i++) {
-            const size_t c = text[i];
-            const size_t glob_v = c;
-            const size_t v = glob_v - root_rank * (1ULL << (glob_h-root_level));
-
-            //assert(v < sigma);
-            const bool b = c & test;
-
-            ++hist[v];
-            root[i] = b;
-        }
-    }
-    */
-
-    // compute the rest bottom-up
-    std::vector<idx_t> count(sigma / 2); // allocate counters
+    // resize vectors in bits
     for (size_t level = h - 1; level > 0; --level) {
         const size_t num_level_nodes = (1ULL << level);
-        // const size_t first_level_node = num_level_nodes - 1;
-
-        auto borders = ctx.borders_at_shard(level).slice(0, num_level_nodes);
-        compute_borders_optional_zeros_rho(level, num_level_nodes, ctx,
-                                           borders); // füllt borders mit grenzen
-
-        const size_t glob_level = root_level + level;
         const size_t glob_offs =
             ((1ULL << level) * root_node_id) - 1; // anzahl nodes in den vorherigen Ebenen(?)
-
-        // compute new histogram, allocate nodes and reset counters
         for (size_t v = 0; v < num_level_nodes; v++) {
             const size_t size = hist[2 * v] + hist[2 * v + 1];
             const size_t node = glob_offs + v;
 
             hist[v] = size;
             bits[node].resize(size);
-            count[v] = 0;
         }
+    }
+
+#pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
+    for (size_t level = h - 1; level > 0; --level) {
+        std::vector<idx_t> count(sigma / 2, 0); // allocate counters
+
+        const size_t glob_level = root_level + level;
+        const size_t glob_offs =
+            ((1ULL << level) * root_node_id) - 1; // anzahl nodes in den vorherigen Ebenen(?)
 
         // compute level bit vectors
         const size_t rsh =

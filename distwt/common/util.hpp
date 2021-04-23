@@ -10,7 +10,12 @@ namespace util {
 
 inline size_t file_size(const std::string& filename) {
     struct stat buf;
-    stat(filename.c_str(), &buf);
+    [[maybe_unused]] const auto error = stat(filename.c_str(), &buf);
+#ifdef DEBUG
+    if(error != 0) {
+        throw std::runtime_error("error getting file size");
+    }
+#endif
     return buf.st_size;
 }
 
