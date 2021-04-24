@@ -113,9 +113,16 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
         }
     }
 
+    // allocate counters
+    std::vector<std::vector<idx_t>> sharded_counter(omp_get_max_threads());
+    for(auto& vec : sharded_counter) {
+        vec.resize(sigma / 2);
+    }
+
 #pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
-    for (size_t level = h - 1; level > 0; --level) {
-        std::vector<idx_t> count(sigma / 2, 0); // allocate counters
+    for (size_t level = h - 1; level > 0; --level) {        
+        auto& count = sharded_counter[omp_get_thread_num()];
+        std::memset(count.data(), 0, count.size()); // reset counters
 
         const size_t glob_level = root_level + level;
         const size_t glob_offs =
