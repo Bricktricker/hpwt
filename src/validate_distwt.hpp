@@ -8,7 +8,7 @@
 #include <tlx/math/div_ceil.hpp>
 
 template <typename sym_t>
-static bool
+static void
 validate_distwt(const std::string& input, const std::string& output, const size_t comm_size) {
     const size_t input_size = util::file_size(input) / sizeof(sym_t);
     const auto size_per_worker = tlx::div_ceil(input_size, comm_size);
@@ -92,6 +92,4 @@ validate_distwt(const std::string& input, const std::string& output, const size_
                       << static_cast<size_t>(value) << '\n';
         }
     }
-
-    return true;
 }

@@ -3,6 +3,7 @@
 #include <distwt/common/effective_alphabet.hpp>
 #include <distwt/common/wt.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <omp.h>
 #include <tlx/math/integer_log2.hpp>
@@ -18,6 +19,30 @@ using ctx_t = ctx_generic<true,
                           bit_vectors>;
 
 // prefix counting for wavelet subtree
+inline void omp_write_bits_vec(uint64_t start,
+                               uint64_t size,
+                               bv_t& level_bv,
+                               std::function<bool(uint64_t)> body) {
+    const auto omp_rank = omp_get_thread_num();
+    const auto omp_size = omp_get_num_threads();
+
+#pragma omp for
+    for (int64_t scur_pos = start; scur_pos <= (int64_t(size) - 64); scur_pos += 64) {
+        DCHECK(scur_pos >= 0);
+        for (size_t i = 0; i < 64; i++) {
+            level_bv[scur_pos + i] = body(scur_pos + i);
+        }
+    }
+
+    uint64_t const remainder = size & 63ULL;
+    if (remainder && ((omp_rank + 1) == omp_size)) {
+        const auto scur_pos = size - remainder;
+        for (size_t i = 0; i < remainder; i++) {
+            level_bv[scur_pos + i] = body(scur_pos + i);
+        }
+    }
+}
+
 template <typename sym_t, typename idx_t>
 inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> und enthält für jede
                                             // knoten im baum einen Bitvektor
@@ -26,12 +51,12 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
                            const size_t h) {
 
     assert(root_node_id > 0);
-    const size_t root_level = tlx::integer_log2_floor(root_node_id); // 0
-    const size_t root_rank = (root_node_id - (1ULL << root_level));  // 0
-    const size_t glob_h = root_level + h;                            // 3 = 0 + 3
+    const size_t root_level = tlx::integer_log2_floor(root_node_id);
+    const size_t root_rank = (root_node_id - (1ULL << root_level));
+    const size_t glob_h = root_level + h;
 
-    const size_t n = text.size();   // 20
-    const size_t sigma = 1ULL << h; // 8, we need the next power of two!
+    const size_t n = text.size();
+    const size_t sigma = 1ULL << h; // we need the next power of two!
 
     const auto rho = rho_dispatch<true>::create(h);
     ctx_t ctx(n, h, rho, h);
@@ -43,7 +68,6 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
     // compute initial histogram
     {
         const uint64_t alphabet_size = sigma;
-        auto&& bv = ctx.bv();
 
         auto& root = bits[root_node_id - 1];
         root.resize(n);
@@ -56,13 +80,11 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
         {
             const auto shard = omp_get_thread_num();
             auto&& hist = sharded_hists[shard];
-
-            // schreibt aktuell die bits des ersten levels in bv[0]
-            omp_write_bits_wordwise(0, n, bv[0], [&](uint64_t const i) {
+            omp_write_bits_vec(0, n, root, [&](uint64_t const i) {
                 auto const c = text[i];
                 hist[c]++;
                 uint64_t const bit = ((c >> (h - 1)) & 1ULL);
-                return bit;
+                return bit != 0;
             });
         }
 
@@ -73,11 +95,6 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
             for (uint64_t shard = 0; shard < sharded_hists.levels(); ++shard) {
                 hist[j] += sharded_hists[shard][j];
             }
-        }
-
-        // copy bits from bv[0] to root
-        for (size_t i = 0; i < n; i++) {
-            root[i] = bit_at(bv[0], i);
         }
     }
 
@@ -115,14 +132,14 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
 
     // allocate counters
     std::vector<std::vector<idx_t>> sharded_counter(omp_get_max_threads());
-    for(auto& vec : sharded_counter) {
+    for (auto& vec : sharded_counter) {
         vec.resize(sigma / 2);
     }
 
 #pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
-    for (size_t level = h - 1; level > 0; --level) {        
+    for (size_t level = h - 1; level > 0; --level) {
         auto& count = sharded_counter[omp_get_thread_num()];
-        std::memset(count.data(), 0, count.size()); // reset counters
+        std::fill(count.begin(), count.end(), 0); // reset counters
 
         const size_t glob_level = root_level + level;
         const size_t glob_offs =
