@@ -1,7 +1,7 @@
 #include <distwt/common/binary_io.hpp>
-#include <distwt/common/util.hpp>
-#include <distwt/common/effective_alphabet.hpp>
 #include <distwt/common/bv64.hpp>
+#include <distwt/common/effective_alphabet.hpp>
+#include <distwt/common/util.hpp>
 #include <distwt/mpi/wt.hpp>
 #include <iomanip>
 #include <string>
@@ -16,7 +16,8 @@ validate_distwt(const std::string& input, const std::string& output, const size_
     Histogram<sym_t> hist(output + "." + WaveletTreeBase::histogram_extension());
     EffectiveAlphabetBase<sym_t> ea(hist);
 
-    const size_t tree_height = tlx::integer_log2_ceil(hist.size() - 1); // WaveletTreeBase::wt_height
+    const size_t tree_height =
+        tlx::integer_log2_ceil(hist.size() - 1); // WaveletTreeBase::wt_height
 
     // read wavelet tree
     WaveletTree::bits_t wt;
@@ -57,11 +58,9 @@ validate_distwt(const std::string& input, const std::string& output, const size_
         size_t level_end = input_size;
         for (size_t level = 0; level < tree_height; level++) {
             const auto& level_bits = wt[level];
-            const size_t num_level_zeros = std::accumulate(
-                std::next(level_bits.begin(), level_begin),
-                std::next(level_bits.begin(), level_end), 0, [](const size_t acc, const bool v) {
-                    return v ? acc : acc + 1;
-                }); // increment acc on false to count 0's
+            const size_t num_level_zeros =
+                std::count(std::next(level_bits.begin(), level_begin),
+                           std::next(level_bits.begin(), level_end), false);
 
             const auto bit = level_bits[idx];
             value <<= 1;
@@ -69,18 +68,15 @@ validate_distwt(const std::string& input, const std::string& output, const size_
             if (!bit) {
                 // go left
                 // count number of 0's from level_begin to idx
-                idx = std::accumulate(std::next(level_bits.begin(), level_begin),
-                                      std::next(level_bits.begin(), idx), 0,
-                                      [](const size_t acc, const bool v) {
-                                          return v ? acc : acc + 1;
-                                      }); // increment acc on false to count 0's
+                idx = std::count(std::next(level_bits.begin(), level_begin),
+                                 std::next(level_bits.begin(), idx), false);
 
                 level_end = level_begin + num_level_zeros;
             } else {
                 // go right
                 // count number of 1's from level_begin to idx
-                idx = std::accumulate(std::next(level_bits.begin(), level_begin),
-                                      std::next(level_bits.begin(), idx), 0);
+                idx = std::count(std::next(level_bits.begin(), level_begin),
+                                 std::next(level_bits.begin(), idx), true);
 
                 level_begin = level_begin + num_level_zeros;
             }
