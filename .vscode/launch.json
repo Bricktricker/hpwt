@@ -7,12 +7,13 @@
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "args": [
+                "test_input.txt",
+                "-o", "output/out",
+                "-v"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [
-                //{"name": "OMP_NUM_THREADS", "value": "1"}
-            ],
+            "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
             "preLaunchTask": "build with CMake",
@@ -30,7 +31,10 @@
             "args": [
                 "-np",
                 "3",
-                "${command:cmake.launchTargetPath}"
+                "${command:cmake.launchTargetPath}",
+                "test_input.txt",
+                "-o", "output/out",
+                "-v"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
