@@ -36,6 +36,9 @@ int mpi_launch(int argc, char** argv) {
         return -1;
     }
 
+    // Validation requires that we write the tree to the filesystem
+    validate_tree &= !output.empty();
+
     // Init MPI
     MPIContext ctx(&argc, &argv);
 
