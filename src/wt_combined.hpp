@@ -12,10 +12,11 @@
 using wt_bits_t = std::vector<std::vector<bool>>;
 
 // prefix counting for wavelet subtree
+template <typename loop_body_t>
 inline void omp_write_bits_vec(uint64_t start,
                                uint64_t size,
                                bv_t& level_bv,
-                               std::function<bool(uint64_t)> body) {
+                               loop_body_t body) {
     const auto omp_rank = omp_get_thread_num();
     const auto omp_size = omp_get_num_threads();
 
