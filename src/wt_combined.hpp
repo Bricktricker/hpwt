@@ -11,12 +11,8 @@
 // one bit vector per node
 using wt_bits_t = std::vector<std::vector<bool>>;
 
-// prefix counting for wavelet subtree
 template <typename loop_body_t>
-inline void omp_write_bits_vec(uint64_t start,
-                               uint64_t size,
-                               bv_t& level_bv,
-                               loop_body_t body) {
+inline void omp_write_bits_vec(uint64_t start, uint64_t size, bv_t& level_bv, loop_body_t body) {
     const auto omp_rank = omp_get_thread_num();
     const auto omp_size = omp_get_num_threads();
 
@@ -37,17 +33,9 @@ inline void omp_write_bits_vec(uint64_t start,
     }
 }
 
+// prefix counting for wavelet subtree
 template <typename sym_t, typename idx_t>
-inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> und enthält für jede
-                                            // knoten im baum einen Bitvektor
-                           const std::vector<sym_t>& text,
-                           const size_t root_node_id, // 1-based!!
-                           const size_t h) {
-
-    assert(root_node_id > 0);
-    const size_t root_level = tlx::integer_log2_floor(root_node_id);
-    const size_t root_rank = (root_node_id - (1ULL << root_level));
-    const size_t glob_h = root_level + h;
+inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
 
     const size_t n = text.size();
     const size_t sigma = 1ULL << h; // we need the next power of two!
@@ -57,7 +45,7 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
     // compute initial histogram
     std::vector<idx_t> hist(sigma, 0);
     {
-        auto& root = bits[root_node_id - 1];
+        auto& root = bits[0];
         root.resize(n);
 
         // Allocate a histogram buffer per thread
@@ -88,7 +76,7 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
     // compute histogram and root node
     for (size_t level = h - 1; level > 0; --level) {
         const size_t num_level_nodes = (1ULL << level);
-        const size_t glob_offs = ((1ULL << level) * root_node_id) - 1;
+        const size_t glob_offs = (1ULL << level) - 1;
         for (size_t v = 0; v < num_level_nodes; v++) {
             const size_t size = hist[2 * v] + hist[2 * v + 1];
             const size_t node = glob_offs + v;
@@ -109,20 +97,16 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
         auto& count = sharded_counter[omp_get_thread_num()];
         std::fill(count.begin(), count.end(), 0); // reset counters
 
-        const size_t glob_level = root_level + level;
-        const size_t glob_offs = ((1ULL << level) * root_node_id) - 1;
+        const size_t glob_offs = (1ULL << level) - 1;
 
         // compute level bit vectors
-        const size_t rsh = glob_h - 1 - (glob_level - 1);
-        const size_t test = 1ULL << (glob_h - 1 - glob_level);
+        const size_t rsh = h - 1 - (level - 1);
+        const size_t test = 1ULL << (h - 1 - level);
 
         for (size_t i = 0; i < n; i++) {
             const size_t c = text[i];
-            const size_t glob_v = (c >> rsh);
-            const size_t v = glob_v - root_rank * (1ULL << level);
+            const size_t v = (c >> rsh);
 
-            // assert(glob_v >= root_rank * (1ULL << level));
-            // assert(v < num_level_nodes);
             const size_t node = glob_offs + v;
 
             const size_t pos = count[v];
@@ -139,6 +123,5 @@ inline void wt_pc_combined(wt_bits_t& bits, // bits ist ein vector<Bitvector> un
 template <typename sym_t, typename idx_t>
 inline void
 wt_pc_combined(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
-
-    wt_pc_combined<sym_t, idx_t>(bits, text, 1, wt.height());
+    wt_pc_combined<sym_t, idx_t>(bits, text, wt.height());
 }
