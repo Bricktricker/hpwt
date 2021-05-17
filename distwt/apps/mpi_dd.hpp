@@ -13,9 +13,6 @@
 #include <distwt/mpi/wt_levelwise.hpp>
 
 #include <distwt/mpi/result.hpp>
-
-#include <pwm/wx_pc.hpp>
-
 #include <src/wt_combined.hpp>
 
 class mpi_dd {
@@ -72,11 +69,8 @@ static void start(
     ctx.cout_master() << "Compute local WTs ..." << std::endl;
     auto wt_nodes = WaveletTreeNodebased(hist,
     [&](WaveletTree::bits_t& bits, const WaveletTreeBase& wt){
-        //function soll die gegebenen 'bits' befüllen
-        bits.resize(wt.num_nodes()); // bits enthält für jede knoten im baum einen Bitvektor
-        //wx_pc<sym_t, true> pc;
-        //const auto data = pc.compute(etext.data(), etext.size(), wt.height());
-        wt_pc_combined<sym_t, idx_t>(wt, bits, etext); // etext ist input text
+        bits.resize(wt.num_nodes());
+        wt_pc_combined<sym_t, idx_t>(wt, bits, etext);
     });
 
     // Clean up

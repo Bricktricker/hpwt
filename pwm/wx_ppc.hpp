@@ -40,7 +40,7 @@ public:
       return wavelet_structure_tree();
     }
 
-    const auto rho = rho_dispatch<is_tree>::create(levels); //rho ist ein identity lambda mit zwei argumenten, letzteres wird zurückgegeben
+    const auto rho = rho_dispatch<is_tree>::create(levels);
     ctx_t ctx(size, levels, rho, levels);
 
     ppc(text, size, levels, ctx);

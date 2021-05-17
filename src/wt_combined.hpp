@@ -2,6 +2,8 @@
 
 #include <distwt/common/effective_alphabet.hpp>
 #include <distwt/common/wt.hpp>
+#include <pwm/arrays/helper_array.hpp>
+#include <pwm/util/debug.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -34,6 +36,7 @@ inline void omp_write_bits_vec(uint64_t start, uint64_t size, bv_t& level_bv, lo
 }
 
 // prefix counting for wavelet subtree
+// combination of wt_pc and ppc
 template <typename sym_t, typename idx_t>
 inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
 
