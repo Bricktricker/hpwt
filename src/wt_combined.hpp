@@ -2,6 +2,7 @@
 
 #include <distwt/common/effective_alphabet.hpp>
 #include <distwt/common/wt.hpp>
+#include <pwm/arrays/flat_two_dim_array.hpp>
 #include <pwm/arrays/helper_array.hpp>
 #include <pwm/util/debug.hpp>
 
@@ -90,15 +91,15 @@ inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, cons
     }
 
     // allocate counters
-    std::vector<std::vector<idx_t>> sharded_counter(omp_get_max_threads());
-    for (auto& vec : sharded_counter) {
-        vec.resize(sigma / 2);
-    }
+    std::vector<idx_t*> sharded_counter(omp_get_max_threads(), nullptr);
 
 #pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
     for (size_t level = h - 1; level > 0; --level) {
         auto& count = sharded_counter[omp_get_thread_num()];
-        std::fill(count.begin(), count.end(), 0); // reset counters
+        if(count == nullptr) {
+            count = new idx_t[sigma / 2];
+        }
+        std::memset(count, 0, sigma / 2); // reset counters
 
         const size_t glob_offs = (1ULL << level) - 1;
 
@@ -120,6 +121,13 @@ inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, cons
             bits[node][pos] = b;
         }
     }
+
+    for(const auto ptr : sharded_counter) {
+        if(ptr != nullptr) {
+            delete[] ptr;
+        }
+    }
+
 }
 
 // prefix counting
