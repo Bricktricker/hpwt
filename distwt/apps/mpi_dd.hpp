@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <limits>
 
 #include <distwt/common/util.hpp>
 #include <distwt/common/wt_sequential.hpp>
@@ -40,7 +41,7 @@ static void start(
     // Determine input partition
     FilePartitionReader<sym_t> input(ctx, input_filename, prefix);
     const size_t local_num = input.local_num();
-    const size_t rdbufsize = (in_rdbufsize > 0) ? in_rdbufsize : local_num;
+    const size_t rdbufsize = (in_rdbufsize > 0) ? in_rdbufsize : std::min(local_num, static_cast<size_t>(std::numeric_limits<int>::max()));
     input.buffer(rdbufsize);
     
     time.input = dt();
