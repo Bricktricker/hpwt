@@ -16,9 +16,6 @@ using wt_bits_t = std::vector<std::vector<bool>>;
 
 template <typename loop_body_t>
 inline void omp_write_bits_vec(uint64_t start, uint64_t size, bv_t& level_bv, loop_body_t body) {
-    const auto omp_rank = omp_get_thread_num();
-    const auto omp_size = omp_get_num_threads();
-
 #pragma omp for
     for (int64_t scur_pos = start; scur_pos <= (int64_t(size) - 64); scur_pos += 64) {
         DCHECK(scur_pos >= 0);
@@ -26,6 +23,9 @@ inline void omp_write_bits_vec(uint64_t start, uint64_t size, bv_t& level_bv, lo
             level_bv[scur_pos + i] = body(scur_pos + i);
         }
     }
+
+    const auto omp_rank = omp_get_thread_num();
+    const auto omp_size = omp_get_num_threads();
 
     uint64_t const remainder = size & 63ULL;
     if (remainder && ((omp_rank + 1) == omp_size)) {
@@ -90,44 +90,38 @@ inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, cons
         }
     }
 
-    // allocate counters
-    std::vector<idx_t*> sharded_counter(omp_get_max_threads(), nullptr);
+#pragma omp parallel num_threads(h - 1)
+    {
+        std::vector<idx_t> count;
+#pragma omp for schedule(nonmonotonic : dynamic, 1)
+        for (size_t level = h - 1; level > 0; --level) {
+            if (count.empty()) {
+                count.resize(sigma / 2, 0);
+            }else{
+                std::fill(count.begin(), count.end(), 0); // reset counters
+            }
 
-#pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
-    for (size_t level = h - 1; level > 0; --level) {
-        auto& count = sharded_counter[omp_get_thread_num()];
-        if(count == nullptr) {
-            count = new idx_t[sigma / 2];
-        }
-        std::memset(count, 0, sigma / 2); // reset counters
+            const size_t glob_offs = (1ULL << level) - 1;
 
-        const size_t glob_offs = (1ULL << level) - 1;
+            // compute level bit vectors
+            const size_t rsh = h - 1 - (level - 1);
+            const size_t test = 1ULL << (h - 1 - level);
 
-        // compute level bit vectors
-        const size_t rsh = h - 1 - (level - 1);
-        const size_t test = 1ULL << (h - 1 - level);
+            for (size_t i = 0; i < n; i++) {
+                const size_t c = text[i];
+                const size_t v = (c >> rsh);
 
-        for (size_t i = 0; i < n; i++) {
-            const size_t c = text[i];
-            const size_t v = (c >> rsh);
+                const size_t node = glob_offs + v;
 
-            const size_t node = glob_offs + v;
+                const size_t pos = count.at(v); //count[v];
+                ++count[v];
+                const bool b = c & test;
 
-            const size_t pos = count[v];
-            ++count[v];
-            const bool b = c & test;
-
-            // assert(pos < hist[v]);
-            bits[node][pos] = b;
-        }
-    }
-
-    for(const auto ptr : sharded_counter) {
-        if(ptr != nullptr) {
-            delete[] ptr;
+                // assert(pos < hist[v]);
+                bits[node][pos] = b;
+            }
         }
     }
-
 }
 
 // prefix counting
