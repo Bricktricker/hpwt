@@ -10,8 +10,8 @@
 
 template <typename sym_t>
 static void
-validate_distwt(const std::string& input, const std::string& output, const size_t comm_size) {
-    const size_t input_size = util::file_size(input) / sizeof(sym_t);
+validate_distwt(const std::string& input, const std::string& output, const size_t comm_size, const size_t prefix) {
+    const size_t input_size = std::min(util::file_size(input), prefix) / sizeof(sym_t);
     const auto size_per_worker = tlx::div_ceil(input_size, comm_size);
 
     Histogram<sym_t> hist(output + "." + WaveletTreeBase::histogram_extension());

@@ -50,7 +50,7 @@ int mpi_launch(int argc, char** argv) {
                 input_filename, prefix, rdbufsize, eff_input,
                 output);
             if(validate_tree && ctx.is_master()) {
-                validate_distwt<uint8_t>(input_filename, output, ctx.num_workers());
+                validate_distwt<uint8_t>(input_filename, output, ctx.num_workers(), prefix);
             }
             return 0;
 
@@ -60,7 +60,7 @@ int mpi_launch(int argc, char** argv) {
                 input_filename, prefix, rdbufsize, eff_input,
                 output);
             if(validate_tree && ctx.is_master()) {
-                validate_distwt<uint16_t>(input_filename, output, ctx.num_workers());
+                validate_distwt<uint16_t>(input_filename, output, ctx.num_workers(), prefix);
             }
             return 0;
 
@@ -70,7 +70,7 @@ int mpi_launch(int argc, char** argv) {
                 input_filename, prefix, rdbufsize, eff_input,
                 output);
             if(validate_tree && ctx.is_master()) {
-                validate_distwt<uint32_t>(input_filename, output, ctx.num_workers());
+                validate_distwt<uint32_t>(input_filename, output, ctx.num_workers(), prefix);
             }
             return 0;
 
