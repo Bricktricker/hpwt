@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <limits>
 
 #include <distwt/common/util.hpp>
 #include <distwt/common/wt_sequential.hpp>
@@ -13,6 +14,7 @@
 #include <distwt/mpi/wt_levelwise.hpp>
 
 #include <distwt/mpi/result.hpp>
+#include <src/wt_combined.hpp>
 
 class mpi_dd {
 public:
@@ -39,7 +41,7 @@ static void start(
     // Determine input partition
     FilePartitionReader<sym_t> input(ctx, input_filename, prefix);
     const size_t local_num = input.local_num();
-    const size_t rdbufsize = (in_rdbufsize > 0) ? in_rdbufsize : local_num;
+    const size_t rdbufsize = (in_rdbufsize > 0) ? in_rdbufsize : std::min(local_num, static_cast<size_t>(std::numeric_limits<int>::max()));
     input.buffer(rdbufsize);
     
     time.input = dt();
@@ -68,9 +70,8 @@ static void start(
     ctx.cout_master() << "Compute local WTs ..." << std::endl;
     auto wt_nodes = WaveletTreeNodebased(hist,
     [&](WaveletTree::bits_t& bits, const WaveletTreeBase& wt){
-
         bits.resize(wt.num_nodes());
-        wt_pc<sym_t, idx_t>(wt, bits, etext);
+        wt_pc_combined<sym_t, idx_t>(wt, bits, etext);
     });
 
     // Clean up

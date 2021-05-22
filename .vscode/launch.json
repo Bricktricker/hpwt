@@ -7,6 +7,9 @@
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "args": [
+                "test_input.txt",
+                "-o", "output/out",
+                "-v"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -27,8 +30,11 @@
             "program": "/usr/bin/mpirun",
             "args": [
                 "-np",
-                "4",
-                "${command:cmake.launchTargetPath}"
+                "3",
+                "${command:cmake.launchTargetPath}",
+                "test_input.txt",
+                "-o", "output/out",
+                "-v"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
