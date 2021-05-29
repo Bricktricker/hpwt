@@ -113,7 +113,7 @@ inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, cons
 
                 const size_t node = glob_offs + v;
 
-                const size_t pos = count.at(v); //count[v];
+                const size_t pos = count[v];
                 ++count[v];
                 const bool b = c & test;
 

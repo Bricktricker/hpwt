@@ -58,8 +58,7 @@ public:
     std::vector<idx_t> compute_C() const {
         const size_t num_entries = m_entries.size();
 
-        std::vector<idx_t> c(num_entries + 1);
-        c[0] = 0;
+        std::vector<idx_t> c(num_entries + 1, 0);
         for(size_t i = 1; i <= num_entries; i++) {
             c[i] = c[i-1] + m_entries[i-1].second;
         }
