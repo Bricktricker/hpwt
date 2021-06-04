@@ -69,7 +69,7 @@ static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t 
         }
     }
 
-#pragma omp parallel num_threads(h - 1)
+#pragma omp parallel num_threads(std::min(h - 1, static_cast<size_t>(omp_get_max_threads())))
     {
         std::vector<idx_t> count;
 #pragma omp for schedule(nonmonotonic : dynamic, 1)
