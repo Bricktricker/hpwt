@@ -10,31 +10,7 @@
 #include <cassert>
 #include <omp.h>
 #include <tlx/math/integer_log2.hpp>
-
-// one bit vector per node
-using wt_bits_t = std::vector<std::vector<bool>>;
-
-template <typename loop_body_t>
-inline void omp_write_bits_vec(uint64_t start, uint64_t size, bv_t& level_bv, loop_body_t body) {
-#pragma omp for
-    for (int64_t scur_pos = start; scur_pos <= (int64_t(size) - 64); scur_pos += 64) {
-        DCHECK(scur_pos >= 0);
-        for (size_t i = 0; i < 64; i++) {
-            level_bv[scur_pos + i] = body(scur_pos + i);
-        }
-    }
-
-    const auto omp_rank = omp_get_thread_num();
-    const auto omp_size = omp_get_num_threads();
-
-    uint64_t const remainder = size & 63ULL;
-    if (remainder && ((omp_rank + 1) == omp_size)) {
-        const auto scur_pos = size - remainder;
-        for (size_t i = 0; i < remainder; i++) {
-            level_bv[scur_pos + i] = body(scur_pos + i);
-        }
-    }
-}
+#include <src/omp_write_bits.hpp>
 
 // prefix counting for wavelet subtree
 // combination of wt_pc and ppc

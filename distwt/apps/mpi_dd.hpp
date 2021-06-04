@@ -14,7 +14,7 @@
 #include <distwt/mpi/wt_levelwise.hpp>
 
 #include <distwt/mpi/result.hpp>
-#include <src/wt_combined.hpp>
+#include <src/wt_pc_combined.hpp>
 
 class mpi_dd {
 public:
