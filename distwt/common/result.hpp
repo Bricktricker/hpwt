@@ -20,6 +20,7 @@ protected:
     std::string m_algo;
     size_t m_nodes;
     size_t m_workers_per_node;
+    size_t m_threads;
     std::string m_input;
     size_t m_size;
     size_t m_bytes_per_symbol;

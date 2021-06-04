@@ -9,6 +9,7 @@ std::string ResultBase::sqlplot() const {
     oss << " algo=" << m_algo;
     oss << " nodes=" << m_nodes;
     oss << " workers_per_node=" << m_workers_per_node;
+    oss << " threads=" << m_threads;
     oss << " input=" << m_input;
     oss << " size=" << m_size;
     oss << " bps=" << m_bytes_per_symbol;
@@ -29,7 +30,7 @@ std::string ResultBase::readable() const {
     oss << "Algorithm '" << m_algo << "' finished processing input '"
         << m_input << "' (" << tlx::format_iec_units(m_size, 3) << "B) after "
         << m_time.total() << " seconds using " << m_nodes << " nodes ("
-        << m_workers_per_node << " workers each) causing "
+        << m_workers_per_node << " workers each) using " << m_threads << " threads causing "
         << tlx::format_iec_units(m_traffic, 3) << "B of net traffic"
         << " (" << tlx::format_iec_units(m_traffic_asym, 3) << "B assymetry) "
         << "using at most " << tlx::format_iec_units(m_memory, 3)

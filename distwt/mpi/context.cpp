@@ -3,6 +3,7 @@
 #include <distwt/common/util.hpp>
 #include <distwt/mpi/context.hpp>
 #include <distwt/mpi/malloc.hpp>
+#include <omp.h>
 
 util::devnull MPIContext::m_devnull;
 MPIContext* MPIContext::m_current = nullptr;
@@ -46,13 +47,16 @@ MPIContext::MPIContext(int* argc, char*** argv)
         MPI_Comm_free(&shmcomm);
     }
 
+    m_num_threads = (size_t)omp_get_max_threads();
+
     // initial synchronization
     MPI_Barrier(MPI_COMM_WORLD);
     m_start_time = time();
 
     cout_master() << "MPIContext initialized with "
         << num_workers() << " workers on "
-        << num_nodes() << " nodes ..."
+        << num_nodes() << " nodes using "
+        << num_threads() << " threads ..."
         << std::endl;
 }
 

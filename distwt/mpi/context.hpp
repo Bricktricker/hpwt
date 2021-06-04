@@ -40,6 +40,7 @@ private:
 
     size_t m_num_workers, m_rank;
     size_t m_workers_per_node;
+    size_t m_num_threads;
     double m_start_time;
 
     Traffic m_local_traffic;
@@ -62,6 +63,7 @@ public:
 
     inline size_t num_workers() const { return m_num_workers; }
     inline size_t rank() const { return m_rank; }
+    inline size_t num_threads() const { return m_num_threads; }
 
     inline size_t num_nodes() const {
         return m_num_workers / m_workers_per_node;

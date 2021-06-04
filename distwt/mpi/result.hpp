@@ -20,6 +20,7 @@ public:
         m_algo = algo;
         m_nodes = ctx.num_nodes();
         m_workers_per_node = ctx.num_workers_per_node();
+        m_threads = ctx.num_threads();
         m_input = input.filename();
         m_size = input.total_size();
         m_bytes_per_symbol = sizeof(sym_t);
