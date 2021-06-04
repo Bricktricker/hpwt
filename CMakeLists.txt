@@ -70,7 +70,8 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(PROJECT_WARNINGS ${GCC_WARNINGS})
 endif()
 
-target_compile_options(hpwt PRIVATE ${PROJECT_WARNINGS})
+target_compile_options(hpwt_ppc PRIVATE ${PROJECT_WARNINGS})
+target_compile_options(hpwt_pps PRIVATE ${PROJECT_WARNINGS})
 
 MESSAGE(STATUS "Built Type: " ${CMAKE_BUILD_TYPE} )
 

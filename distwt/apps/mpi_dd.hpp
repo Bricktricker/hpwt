@@ -14,8 +14,8 @@
 #include <distwt/mpi/wt_levelwise.hpp>
 
 #include <distwt/mpi/result.hpp>
-#include <src/wt_pc_combined.hpp>
 
+template<typename shared_t>
 class mpi_dd {
 public:
 
@@ -71,7 +71,7 @@ static void start(
     auto wt_nodes = WaveletTreeNodebased(hist,
     [&](WaveletTree::bits_t& bits, const WaveletTreeBase& wt){
         bits.resize(wt.num_nodes());
-        wt_pc_combined<sym_t, idx_t>(wt, bits, etext);
+        shared_t::template start<sym_t, idx_t>(wt, bits, etext);
     });
 
     // Clean up
@@ -106,7 +106,7 @@ static void start(
     ctx.synchronize();
 
     // gather stats
-    Result result("mpi-dd", ctx, input, wt.sigma(), time);
+    Result result("mpi-dd-" + shared_t::name(), ctx, input, wt.sigma(), time);
 
     ctx.cout_master() << result.readable() << std::endl
                       << result.sqlplot() << std::endl;

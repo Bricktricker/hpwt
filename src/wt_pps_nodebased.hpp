@@ -179,8 +179,11 @@ public:
     }
 };
 
+class wt_pps_nodebased {
+public:
+
 template <typename sym_t, typename idx_t>
-inline void wt_pps_nodebased(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
+static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
     using ctx_t = ctx_generic<true,
                             ctx_options::borders::sharded_single_level,
                             ctx_options::hist::sharded_single_level,
@@ -195,7 +198,13 @@ inline void wt_pps_nodebased(wt_bits_t& bits, const std::vector<sym_t>& text, co
 
 // prefix sorting
 template <typename sym_t, typename idx_t>
-inline void
-wt_pps_nodebased(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
-    wt_pps_nodebased<sym_t, idx_t>(bits, text, wt.height());
+static void
+start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
+    start<sym_t, idx_t>(bits, text, wt.height());
 }
+
+static std::string name() {
+  return "pps";
+}
+
+};

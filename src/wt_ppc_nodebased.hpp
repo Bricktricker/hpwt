@@ -12,10 +12,13 @@
 #include <tlx/math/integer_log2.hpp>
 #include <src/omp_write_bits.hpp>
 
+class wt_ppc_nodebased {
+public:
+
 // prefix counting for wavelet subtree
 // combination of wt_pc and ppc
 template <typename sym_t, typename idx_t>
-inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
+static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
 
     const size_t n = text.size();
     const size_t sigma = 1ULL << h; // we need the next power of two!
@@ -102,7 +105,13 @@ inline void wt_pc_combined(wt_bits_t& bits, const std::vector<sym_t>& text, cons
 
 // prefix counting
 template <typename sym_t, typename idx_t>
-inline void
-wt_pc_combined(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
-    wt_pc_combined<sym_t, idx_t>(bits, text, wt.height());
+static void
+start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
+    start<sym_t, idx_t>(bits, text, wt.height());
 }
+
+static std::string name() {
+  return "ppc";
+}
+
+};
