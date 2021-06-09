@@ -23,9 +23,8 @@ int mpi_launch(int argc, char** argv) {
     size_t sym_width = 1;
     cp.add_bytes('w', "width", sym_width, "Number of bytes per input symbol.");
 
-    bool eff_input = false;
-    cp.add_flag('e', "effective", eff_input,
-        "Input is already an effective transform (skip histogram computation).");
+    // not implemented
+    const bool eff_input = false;
 
     bool validate_tree = false;
     cp.add_flag('v', "validate", validate_tree, "Validate the generated wavelet tree.");
