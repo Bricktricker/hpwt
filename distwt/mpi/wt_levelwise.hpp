@@ -12,5 +12,5 @@ public:
         : WaveletTree(hist, construction_algorithm) {
     }
 
-    void save(const MPIContext& ctx, const std::string& output);
+    size_t save(const MPIContext& ctx, const std::string& output);
 };

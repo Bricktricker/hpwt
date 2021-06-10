@@ -29,6 +29,7 @@ protected:
     size_t m_memory;
     size_t m_traffic;
     size_t m_traffic_asym;
+    size_t m_bits_written;
 
 public:
     std::string sqlplot() const;
