@@ -15,8 +15,7 @@ public:
         const MPIContext& ctx,
         const FilePartitionReader<sym_t>& input,
         const size_t alphabet,
-        Time time,
-        const size_t bits_written) {
+        Time time) {
 
         m_algo = algo;
         m_nodes = ctx.num_nodes();
@@ -27,7 +26,6 @@ public:
         m_bytes_per_symbol = sizeof(sym_t);
         m_alphabet = alphabet;
         m_time = time;
-        m_bits_written = bits_written;
 
         // gather distributed stats
         m_memory = ctx.gather_max_alloc();

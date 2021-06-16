@@ -22,7 +22,6 @@ std::string ResultBase::sqlplot() const {
     oss << " memory=" << m_memory;
     oss << " traffic=" << m_traffic;
     oss << " traffic_asym=" << m_traffic_asym;
-    oss << " bits_written=" << m_bits_written;
     return oss.str();
 }
 
@@ -37,6 +36,6 @@ std::string ResultBase::readable() const {
         << "using at most " << tlx::format_iec_units(m_memory, 3)
         << "B of overall RAM (avg "
         << tlx::format_iec_units(m_memory / (m_workers_per_node * m_nodes), 3)
-        << " per worker), writing " << m_bits_written << " bits to disk.";
+        << " per worker).";
     return oss.str();
 }

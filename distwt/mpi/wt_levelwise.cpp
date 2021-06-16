@@ -4,11 +4,10 @@
 #include <iomanip>
 #include <mpi.h>
 
-size_t WaveletTreeLevelwise::save(
+void WaveletTreeLevelwise::save(
     const MPIContext& ctx,
     const std::string& output) {
 
-    size_t bits_written = 0;
     // save WT levels
     for(size_t level = 0; level < height(); level++) {
         // construct local filename
@@ -42,7 +41,6 @@ size_t WaveletTreeLevelwise::save(
             if(x >= 64ULL) {
                 uint64_t ull = bitbuf.to_ullong();
                 MPI_File_write(f, &ull, 1, MPI_LONG_LONG, &status);
-                bits_written += 64;
 
                 x = 0;
             }
@@ -51,12 +49,9 @@ size_t WaveletTreeLevelwise::save(
         if(x > 0) {
             uint64_t ull = bitbuf.to_ullong();
             MPI_File_write(f, &ull, 1, MPI_LONG_LONG, &status);
-            bits_written += x;
         }
 
         // close file
         MPI_File_close(&f);
     }
-
-    return bits_written;
 }

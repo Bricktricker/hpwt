@@ -90,7 +90,6 @@ static void start(
     time.merge = dt();
 
     // write to disk if needed
-    size_t bits_written = 0;
     if(output.length() > 0) {
         ctx.synchronize();
         ctx.cout_master() << "Writing WT to disk ..." << std::endl;
@@ -99,7 +98,7 @@ static void start(
             hist.save(output + "." + WaveletTreeBase::histogram_extension());
         }
 
-        bits_written = wt.save(ctx, output);
+        wt.save(ctx, output);
     }
 
     // Synchronize for exit
@@ -107,7 +106,7 @@ static void start(
     ctx.synchronize();
 
     // gather stats
-    Result result("mpi-dd-" + shared_t::name(), ctx, input, wt.sigma(), time, bits_written);
+    Result result("mpi-dd-" + shared_t::name(), ctx, input, wt.sigma(), time);
 
     ctx.cout_master() << result.readable() << std::endl
                       << result.sqlplot() << std::endl;
