@@ -17,8 +17,8 @@ public:
 
 // prefix counting for wavelet subtree
 // combination of wt_pc and ppc
-template <typename sym_t, typename idx_t>
-static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
+template <typename sym_t, typename idx_t, typename A>
+static void start(wt_bits_t& bits, const std::vector<sym_t, A>& text, const size_t h) {
 
     const size_t n = text.size();
     const size_t sigma = 1ULL << h; // we need the next power of two!
@@ -104,9 +104,9 @@ static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t 
 }
 
 // prefix counting
-template <typename sym_t, typename idx_t>
+template <typename sym_t, typename idx_t, typename A>
 static void
-start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
+start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t, A>& text) {
     start<sym_t, idx_t>(bits, text, wt.height());
 }
 

@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include <pwm/util/debug_assert.hpp>
+#include <pwm/util/common.hpp>
 
 #include <functional>
 
@@ -172,30 +173,35 @@ public:
         }
     }
 
-    void process_local_omp(std::function<void(sym_t)> func, size_t bufsize) const {
+    void process_local_omp(std::function<void(size_t, sym_t)> func, size_t bufsize) const {
         if(m_buffered) {
 #pragma omp for
-            for (int64_t scur_pos = 0; scur_pos <= (int64_t(m_buffer.size()) - 64); scur_pos += 64) {
+            for (int64_t scur_pos = 0; scur_pos <= (int64_t(m_buffer.size()) - CACHELINE_SIZE); scur_pos += CACHELINE_SIZE) {
                 DCHECK(scur_pos >= 0);
-                for (size_t i = 0; i < 64; i++) {
-                    func(m_buffer[scur_pos + i]);
+                for (size_t i = 0; i < CACHELINE_SIZE; i++) {
+                    const size_t idx = scur_pos + i;
+                    func(idx, m_buffer[idx]);
                 }
             }
 
             const auto omp_rank = omp_get_thread_num();
             const auto omp_size = omp_get_num_threads();
 
-            uint64_t const remainder = m_buffer.size() & 63ULL;
+            uint64_t const remainder = m_buffer.size() & (CACHELINE_SIZE-1ULL);
             if (remainder && ((omp_rank + 1) == omp_size)) {
                 const auto scur_pos = m_buffer.size() - remainder;
                 for (size_t i = 0; i < remainder; i++) {
-                    func(m_buffer[scur_pos + i]);
+                    const size_t idx = scur_pos + i;
+                    func(idx, m_buffer[idx]);
                 }
             }
         }else{
 #pragma omp single nowait
             {
-                process_local(func, bufsize);
+                size_t i = 0;
+                process_local([&](const sym_t x){
+                    func(i++, x);
+                }, bufsize);
             }
         }
     }

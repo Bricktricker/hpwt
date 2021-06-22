@@ -15,6 +15,8 @@
 
 #include <distwt/mpi/result.hpp>
 
+#include <src/alignment_allocator.hpp>
+
 template<typename shared_t>
 class mpi_dd {
 public:
@@ -57,10 +59,12 @@ static void start(
 
     // Transform text and cache in RAM
     ctx.cout_master() << "Compute effective transformation ..." << std::endl;
-    std::vector<sym_t> etext(local_num);
+    std::vector<sym_t, Alignment_allocator<sym_t>> etext(local_num);
+#pragma omp parallel
     {
-        size_t i = 0;
-        ea.transform(input, [&](sym_t x){ etext[i++] = x; }, rdbufsize);
+        input.process_local_omp([&](const size_t idx, const sym_t x) {
+            etext[idx] = ea.map(x);
+        }, rdbufsize);
     }
 
     time.eff = dt();

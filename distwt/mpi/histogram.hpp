@@ -192,7 +192,7 @@ inline void Histogram<uint8_t>::compute_histogram(
     const auto shard = omp_get_thread_num();
     auto&& hist = sharded_hists[shard];
 
-    input.process_local_omp([&](uint8_t c){
+    input.process_local_omp([&](const size_t, uint8_t c){
         ++hist[c];
     }, rdbufsize);
 }
