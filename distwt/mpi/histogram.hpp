@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pwm/arrays/helper_array.hpp>
+
 #include <distwt/common/histogram.hpp>
 #include <distwt/mpi/context.hpp>
 #include <distwt/mpi/file_partition_reader.hpp>
@@ -10,6 +12,8 @@
 
 #include <algorithm>
 #include <tlx/math/integer_log2.hpp>
+
+#include <omp.h>
 
 template<typename sym_t>
 class Histogram : public HistogramBase<sym_t, idx_t> {
@@ -181,15 +185,30 @@ inline void Histogram<uint8_t>::compute_histogram(
 
     constexpr size_t SIGMA_MAX = 256ULL;
 
-    // compute local histogram
-    size_t local_hist[SIGMA_MAX] = {0};
-    input.process_local([&](uint8_t c){
-        ++local_hist[c];
+    helper_array sharded_hists(omp_get_max_threads(), SIGMA_MAX);
+
+#pragma omp parallel
+{
+    const auto shard = omp_get_thread_num();
+    auto&& hist = sharded_hists[shard];
+
+    input.process_local_omp([&](uint8_t c){
+        ++hist[c];
     }, rdbufsize);
+}
+
+    // Accumulate the histograms
+    auto&& local_hist = sharded_hists[0];
+#pragma omp parallel for
+    for (uint64_t j = 0; j < SIGMA_MAX; ++j) {
+        for (uint64_t shard = 1; shard < sharded_hists.levels(); ++shard) {
+            local_hist[j] += sharded_hists[shard][j];
+        }
+    }
 
     // distribute
     size_t hist[SIGMA_MAX] = {0};
-    ctx.all_reduce(local_hist, hist, SIGMA_MAX);
+    ctx.all_reduce(local_hist.data(), hist, SIGMA_MAX);
 
     // extract nonzero entries
     for(size_t c = 0; c < SIGMA_MAX; c++) {

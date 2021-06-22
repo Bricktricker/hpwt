@@ -2,6 +2,8 @@
 
 #include <tlx/math/div_ceil.hpp>
 #include <mpi.h>
+#include <omp.h>
+#include <pwm/util/debug_assert.hpp>
 
 #include <functional>
 
@@ -167,6 +169,34 @@ public:
             // close file
             MPI_File_close(&f);
             
+        }
+    }
+
+    void process_local_omp(std::function<void(sym_t)> func, size_t bufsize) const {
+        if(m_buffered) {
+#pragma omp for
+            for (int64_t scur_pos = 0; scur_pos <= (int64_t(m_buffer.size()) - 64); scur_pos += 64) {
+                DCHECK(scur_pos >= 0);
+                for (size_t i = 0; i < 64; i++) {
+                    func(m_buffer[scur_pos + i]);
+                }
+            }
+
+            const auto omp_rank = omp_get_thread_num();
+            const auto omp_size = omp_get_num_threads();
+
+            uint64_t const remainder = m_buffer.size() & 63ULL;
+            if (remainder && ((omp_rank + 1) == omp_size)) {
+                const auto scur_pos = m_buffer.size() - remainder;
+                for (size_t i = 0; i < remainder; i++) {
+                    func(m_buffer[scur_pos + i]);
+                }
+            }
+        }else{
+#pragma omp single nowait
+            {
+                process_local(func, bufsize);
+            }
         }
     }
 
