@@ -69,7 +69,8 @@ static void start(wt_bits_t& bits, const std::vector<sym_t, A>& text, const size
         }
     }
 
-#pragma omp parallel num_threads(std::min(h - 1, static_cast<size_t>(omp_get_max_threads())))
+    const int old_max_threads = omp_get_max_threads();
+#pragma omp parallel num_threads(std::min(h - 1, static_cast<size_t>(old_max_threads)))
     {
         std::vector<idx_t> count;
 #pragma omp for schedule(nonmonotonic : dynamic, 1)
@@ -101,6 +102,8 @@ static void start(wt_bits_t& bits, const std::vector<sym_t, A>& text, const size
             }
         }
     }
+
+    omp_set_num_threads(old_max_threads);
 }
 
 // prefix counting
