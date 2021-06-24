@@ -217,8 +217,6 @@ private:
                         assert(moffs >= global_offset);
                         assert(moffs - global_offset + mnum <= local_num);
 
-                        #pragma omp barrier
-
                         omp_write_bits_vec(start, end, bits[level], [&](uint64_t const idx) {
                             const size_t local_idx = idx - start;
                             const uint64_t word = msg[2 + (local_idx / 64)];
