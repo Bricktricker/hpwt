@@ -199,7 +199,7 @@ inline void Histogram<uint8_t>::compute_histogram(
 
     // Accumulate the histograms
     auto&& local_hist = sharded_hists[0];
-#pragma omp parallel for
+#pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
     for (uint64_t j = 0; j < SIGMA_MAX; ++j) {
         for (uint64_t shard = 1; shard < sharded_hists.levels(); ++shard) {
             local_hist[j] += sharded_hists[shard][j];

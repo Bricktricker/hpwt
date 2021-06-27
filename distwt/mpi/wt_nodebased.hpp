@@ -66,6 +66,7 @@ private:
         std::vector<idx_t> local_node_offs(num_nodes);
         {
             // compute prefix sum of local node sizes
+#pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
             for(size_t i = 0; i < num_nodes; i++) {
                 local_node_offs[i] = idx_t(m_bits[i].size());
             }
@@ -97,7 +98,7 @@ private:
                 std::vector<std::vector<MSG_Send_Data>> msg_buf(num_level_nodes);
 
                 // determine which bits from this worker go to other workers
-#pragma omp parallel for
+#pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
                 for(size_t i = 0; i < num_level_nodes; i++) {
                     const size_t node_id = first_level_node +
                         (bit_reversal ? bitrev(i, level) : i);
