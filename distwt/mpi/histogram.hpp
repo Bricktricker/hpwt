@@ -42,16 +42,33 @@ private:
 
         {
             // compute local histogram
-            std::unordered_map<sym_t, idx_t> local_hist;
+            std::vector<std::unordered_map<sym_t, idx_t>> sharded_hists(omp_get_max_threads());
 
-            input.process_local([&](sym_t c){
-                auto it = local_hist.find(c);
-                if(it != local_hist.end()) {
-                    ++it->second;
+            const auto map_inserter = [](std::unordered_map<sym_t, idx_t>& map, const sym_t c, const idx_t num = 1) {
+                auto it = map.find(c);
+                if(it != map.end()) {
+                    it->second += num;
                 } else {
-                    local_hist.emplace(c, 1);
+                    map.emplace(c, num);
                 }
-            }, rdbufsize);
+            };
+
+#pragma omp parallel
+            {
+                auto& hist = sharded_hists[omp_get_thread_num()];
+                input.process_local_omp([&] (const size_t, sym_t c) {
+                    map_inserter(hist, c);
+                }, rdbufsize);
+            }
+
+            // Accumulate the histograms
+            auto& local_hist = sharded_hists[0];
+            for(size_t shard = 1; shard < sharded_hists.size(); shard++) {
+                const auto& shard_hist = sharded_hists[shard];
+                for(const auto& pair : shard_hist) {
+                    map_inserter(local_hist, pair.first, pair.second);
+                }
+            }
 
             // distribute using tree-like communication
             {
