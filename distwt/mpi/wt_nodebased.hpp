@@ -95,7 +95,12 @@ private:
                     size_t target;
                     int level;
                 };
+
+                // allocate space for Message buffers
                 std::vector<std::vector<MSG_Send_Data>> msg_buf(num_level_nodes);
+                for(size_t i = 0; i < num_level_nodes; i++) {
+                    msg_buf[i].reserve(ctx.num_workers());
+                }
 
                 // determine which bits from this worker go to other workers
 #pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
@@ -153,12 +158,6 @@ private:
                             // advance in node
                             p = x;
                         }
-
-                        if(discard) {
-                            // discard node bit vector
-                            bv.clear();
-                            bv.shrink_to_fit();
-                        }
                     }
 
                 }
@@ -167,6 +166,16 @@ private:
                 for(const auto& group : msg_buf) {
                     for(const auto& msg_data : group) {
                         ctx.isend(msg_data.msg, msg_data.size, msg_data.target, msg_data.level);
+                    }
+                }
+
+                // discard node bit vector
+                if(discard) {
+                    for(size_t i = 0; i < num_level_nodes; i++) {
+                        const size_t node_id = first_level_node + (bit_reversal ? bitrev(i, level) : i);
+                        auto& bv = m_bits[node_id-1];
+                        bv.clear();
+                        bv.shrink_to_fit();
                     }
                 }
 
@@ -237,11 +246,10 @@ private:
                         delete[] msg_data.msg;
                     }
                 }
-                /* TODO: why can't we delete the buffer here
                 for(const uint64_t* msg : recv_buffer) {
                     delete[] msg;
                 }
-                */
+                
             }
         }
 

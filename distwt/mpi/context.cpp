@@ -67,6 +67,7 @@ MPIContext::~MPIContext() {
         malloc_callback::on_alloc = nullptr;
         malloc_callback::on_free = nullptr;
         m_current = nullptr;
+        cout() << "current_alloc: " << m_alloc_current << '\n';
     }
 }
 
@@ -104,7 +105,7 @@ void MPIContext::track_alloc(size_t size) {
 }
 
 void MPIContext::track_free(size_t size) {
-    assert(m_alloc_current >= size);
+    //assert(m_alloc_current >= size);
     m_alloc_current -= size;
 }
 
