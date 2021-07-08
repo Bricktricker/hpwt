@@ -103,6 +103,7 @@ private:
                 }
 
                 // determine which bits from this worker go to other workers
+                ctx.enable_alloc_count(false);
 #pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
                 for(size_t i = 0; i < num_level_nodes; i++) {
                     const size_t node_id = first_level_node +
@@ -162,10 +163,13 @@ private:
 
                 }
 
+                ctx.enable_alloc_count(true);
+
                 //send the buffers
                 for(const auto& group : msg_buf) {
                     for(const auto& msg_data : group) {
                         ctx.isend(msg_data.msg, msg_data.size, msg_data.target, msg_data.level);
+                        ctx.track_alloc(msg_data.size * sizeof(uint64_t));
                     }
                 }
 
@@ -212,7 +216,7 @@ private:
 
                         // receive global interval [moffs, moffs+mnum)
                         #ifdef DBG_MERGE
-                        #prgam omp single
+                        #pragma omp single
                         {
                         ctx.cout() << "receive ["
                             << moffs << ","
