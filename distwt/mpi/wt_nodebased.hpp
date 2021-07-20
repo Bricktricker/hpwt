@@ -56,7 +56,6 @@ private:
 
         if(discard) {
             m_bits[0].clear();
-            m_bits[0].shrink_to_fit();
         }
 
         // Part 1 - Distribute local offsets for all nodes
@@ -153,7 +152,7 @@ private:
                             uint64_t* msg = new uint64_t[size];
                             msg[0] = p;
                             msg[1] = num;
-                            bv64_pack_t::pack(bv, local_offs, msg+2, num);
+                            bv64_pack_t::packBlocks(bv.data(), local_offs, msg+2, num);
                             local_msg_buf.push_back({ msg, size, target, static_cast<int>(level) });
 
                             // advance in node
@@ -179,7 +178,6 @@ private:
                         const size_t node_id = first_level_node + (bit_reversal ? bitrev(i, level) : i);
                         auto& bv = m_bits[node_id-1];
                         bv.clear();
-                        bv.shrink_to_fit();
                     }
                 }
 
@@ -231,12 +229,15 @@ private:
                         assert(moffs >= global_offset);
                         assert(moffs - global_offset + mnum <= local_num);
 
+                        omp_copy_bits(bits[level], msg + 2, start, end);
+                        /*
                         omp_write_bits_vec(start, end, bits[level], [&](uint64_t const idx) {
                             const size_t local_idx = idx - start;
                             const uint64_t word = msg[2 + (local_idx / 64)];
                             uint64_t const bit = ((word >> (local_idx % 64)) & 1ULL);
                             return bit != 0;
                         });
+                        */
                     }
                 }
 

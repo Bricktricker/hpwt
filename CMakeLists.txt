@@ -72,6 +72,7 @@ endif()
 
 target_compile_options(hpwt_ppc PRIVATE ${PROJECT_WARNINGS})
 target_compile_options(hpwt_pps PRIVATE ${PROJECT_WARNINGS})
+target_compile_options(hpwt_bitvec PRIVATE ${PROJECT_WARNINGS})
 
 MESSAGE(STATUS "Built Type: " ${CMAKE_BUILD_TYPE} )
 

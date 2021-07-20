@@ -21,7 +21,7 @@ validate_distwt(const std::string& input, const std::string& output, const size_
         tlx::integer_log2_ceil(hist.size() - 1); // WaveletTreeBase::wt_height
 
     // read wavelet tree
-    WaveletTree::bits_t wt;
+    std::vector<std::vector<bool>> wt;
     for (size_t level = 0; level < tree_height; level++) {
         wt.emplace_back();
         size_t bits_left = input_size;

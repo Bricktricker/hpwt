@@ -1,5 +1,5 @@
 #pragma once
 
-#include <vector>
+#include <src/bit_vector.hpp>
 
-using bv_t = std::vector<bool>;
+using bv_t = bit_vector;

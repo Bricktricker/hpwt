@@ -108,7 +108,7 @@ static void start(wt_bits_t& bits, const std::vector<sym_t, A>& text, const size
                 const bool b = c & test;
 
                 // assert(pos < hist[v]);
-                bits[node][pos] = b;
+                bits[node].set(pos, b);
             }
         }
     }

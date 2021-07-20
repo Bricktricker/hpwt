@@ -6,8 +6,10 @@
 #include <cassert>
 #include <tlx/math/integer_log2.hpp>
 
+#include <src/bit_vector.hpp>
+
 // one bit vector per node
-using wt_bits_t = std::vector<std::vector<bool>>;
+using wt_bits_t = std::vector<bit_vector>;
 
 // prefix counting for wavelet subtree
 template<typename sym_t, typename idx_t>

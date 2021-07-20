@@ -1,6 +1,8 @@
 #pragma once
 
 #include <tlx/math/div_ceil.hpp>
+#include <pwm/util/debug_assert.hpp>
+#include <pwm/arrays/span.hpp>
 
 template<typename items_t, size_t N>
 class uint64_pack_t {
@@ -40,6 +42,39 @@ public:
             *dst++ = pack_uint64(buf);
         }
     }
+
+    static void packBlocks(const uint64_t* src,
+        const size_t src_offs,
+        uint64_t* _dst,
+        const size_t num) {
+
+            span<uint64_t> dst(_dst, required_bufsize(num));
+
+            src += src_offs / 64ULL;
+
+            const size_t block_offs = (src_offs % 64ULL);
+            const size_t inv_block_offs = 64ULL - block_offs;
+            const auto mask = (1ULL << block_offs) - 1;
+
+            size_t src_pos = src_offs % N;
+            size_t dst_pos = 0;
+
+            while(dst_pos < num) {
+                dst[dst_pos / N] = src[src_pos / N] << block_offs;
+                src_pos += inv_block_offs;
+                dst_pos += inv_block_offs;
+
+                if(dst_pos >= num) {
+                    //TODO: clear last bits
+                    //dst[dst_pos / N] &= ~((1ULL << inv_block_offs) - 1); // does not work
+                    return;
+                }
+
+                dst[dst_pos / N] |= (src[src_pos / N] & (mask << inv_block_offs)) >> inv_block_offs;
+                src_pos += block_offs;
+                dst_pos += block_offs;
+            }
+        }
 
     template<typename dst_t>
     static void unpack(
