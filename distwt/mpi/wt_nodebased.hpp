@@ -206,7 +206,8 @@ private:
 
 #pragma omp parallel
                 {
-                    for(const uint64_t* msg : recv_buffer) {
+                    for(size_t i = 0; i < recv_buffer.size(); i++) {
+                        const uint64_t* msg = recv_buffer[i];
                         const size_t moffs = msg[0];
                         const size_t mnum = msg[1];
                         const size_t start = moffs - global_offset;
@@ -219,8 +220,7 @@ private:
                         ctx.cout() << "receive ["
                             << moffs << ","
                             << moffs + mnum
-                            << ") (" << mnum << " bits) from "
-                            << result.sender << std::endl;
+                            << ") (" << mnum << " bits) " << std::endl;
                         ctx.cout() << "got " << num_received << " / "
                             << local_num << " bits" << std::endl;
                         }
@@ -229,15 +229,9 @@ private:
                         assert(moffs >= global_offset);
                         assert(moffs - global_offset + mnum <= local_num);
 
+                        #pragma omp barrier
+
                         omp_copy_bits(bits[level], msg + 2, start, end);
-                        /*
-                        omp_write_bits_vec(start, end, bits[level], [&](uint64_t const idx) {
-                            const size_t local_idx = idx - start;
-                            const uint64_t word = msg[2 + (local_idx / 64)];
-                            uint64_t const bit = ((word >> (local_idx % 64)) & 1ULL);
-                            return bit != 0;
-                        });
-                        */
                     }
                 }
 

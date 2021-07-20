@@ -1,5 +1,6 @@
 #include <array>
 #include <bitset>
+#include <distwt/mpi/uint64_pack_bv64.hpp>
 #include <iostream>
 #include <pwm/arrays/span.hpp>
 #include <pwm/util/debug_assert.hpp>
@@ -21,68 +22,71 @@ void print_binary(const A* ptr, const size_t length) {
     std::cout << '\n';
 }
 
-template <typename A, size_t N>
-void pack_new(A* _dst, const A* src, size_t start, size_t end) {
-    span<A> dst(_dst, required_bufsize_temp<N>(end));
+void old_copy(bit_vector& vec, const uint64_t start, const uint64_t end, const uint64_t* msg) {
+    omp_write_bits_vec(start, end, vec, [&](uint64_t const idx) {
+        const size_t local_idx = idx - start;
+        const uint64_t word = msg[2 + (local_idx / 64)];
+        const size_t bit_idx = 64 - (local_idx % 64) - 1;
+        uint64_t const bit = ((word >> bit_idx) & 1ULL);
+        return bit != 0;
+    });
+}
 
-    const size_t start_block = start / N; // the first block to write into (inclusive)
-    const size_t end_block = end / N;     // the last block to write into (inclusive)
-    const size_t block_offs = start % N;
+void test_1() {
+    bit_vector vec_1;
+    bit_vector vec_2;
+    vec_1.resize(88);
+    vec_2.resize(88);
 
-    // start is at start of block, we can easily copy the bits over
-    if (block_offs == 0) {
+    const uint64_t b1 = 11894728207041305296ULL;
+    const uint64_t b2 = 9231347388919854438ULL;
 
-        for (size_t block = start_block; block < end_block; block++) {
-            const size_t src_block = block - start_block;
-            dst[block] = src[src_block];
-        }
+    omp_copy_bits(vec_1, &b1, 0, 62);
+    omp_copy_bits(vec_1, &b2, 62, 88);
 
-        const auto bits_left = end % N;
-        if (bits_left != 0) {
-            const auto bits_left_mask = ((1ULL << bits_left) - 1) << (N - bits_left);
-            dst[end_block] |= (src[end_block - start_block] & bits_left_mask) >> block_offs;
-        }
-
-    } else {
-        const size_t inv_block_offs = N - block_offs;
-        const auto mask = (1ULL << block_offs) - 1; // sets lowest block_offs bits to 1
-
-        // extra handling wen we need to copy less than N bits
-        if (end - start < N - block_offs) {
-            const size_t bits_left = (end - start) % N;
-            const auto bits_left_mask = ((1ULL << bits_left) - 1) << (N - bits_left);
-            dst[start_block] |= static_cast<A>((src[0] & bits_left_mask) >> block_offs);
-            return;
-        } else {
-            dst[start_block] |= static_cast<A>(src[0] >> block_offs);
-        }
-
-        for (size_t block = start_block + 1; block < end_block; block++) {
-            size_t src_block = (block - start_block) - 1;
-            dst[block] |= (src[src_block] & mask) << inv_block_offs;
-
-            src_block++;
-            dst[block] |= src[src_block] >> block_offs;
-        }
-
-        const size_t bits_left = end % N;
-        if (bits_left != 0) {
-            const size_t src_block = (end_block - start_block) - 1;
-            const auto bits_left_mask = ((1ULL << bits_left) - 1) << (N - bits_left);
-            dst[end_block] |= (src[src_block] & bits_left_mask);
-        }
+    std::array<uint64_t, 3> arr_1{0, 0, b1};
+    std::array<uint64_t, 3> arr_2{0, 0, b2};
+    old_copy(vec_2, 0, 62, arr_1.data());
+    old_copy(vec_2, 62, 88, arr_2.data());
+    
+    if(vec_1 != vec_2) {
+        std::cout << vec_1 << '\n';
+        std::cout << vec_2 << '\n';
+        throw  std::runtime_error("test_1 failed");
     }
 }
 
+void test_2() {
+    bit_vector vec_1;
+    bit_vector vec_2;
+    vec_1.resize(119);
+    vec_2.resize(119);
+
+    const uint64_t b1 = 16815872969109667840ULL;
+    const uint64_t b2 = 15036473865976938496ULL;
+    const std::array<uint64_t, 2> b3{18113243328543154591ULL, 5044031582654955520ULL};
+
+    omp_copy_bits(vec_1, &b1, 0, 43);
+    omp_copy_bits(vec_1, &b2, 114, 119);
+    omp_copy_bits(vec_1, b3.data(), 43, 114);
+
+    std::array<uint64_t, 3> arr_1{0, 0, b1};
+    std::array<uint64_t, 3> arr_2{0, 0, b2};
+    std::array<uint64_t, 4> arr_3{0, 0, b3[0], b3[1]};
+    old_copy(vec_2, 0, 43, arr_1.data());
+    old_copy(vec_2, 114, 119, arr_2.data());
+    old_copy(vec_2, 43, 114, arr_3.data());
+
+    if(vec_1 != vec_2) {
+        std::cout << vec_1 << '\n';
+        std::cout << vec_2 << '\n';
+        throw std::runtime_error("test_1 failed");
+    }
+
+}
+
 int main() {
-    const size_t start = 5;
-    const size_t end = 21;
-    std::array<uint8_t, 3> src({0xFF, 0xFF, 0xFF}); // 0b10010100, 0b10101001, 0b11100101
-    const size_t buff_size = required_bufsize_temp<8>(end);
-    uint8_t* dst = new uint8_t[buff_size];
-    std::memset(dst, 0, buff_size);
-    pack_new<uint8_t, 8>(dst, src.data(), start, end);
-    std::cout << "dst: ";
-    print_binary<uint8_t, 8>(dst, buff_size);
+    test_1();
+    test_2();
     return 0;
 }
