@@ -12,13 +12,24 @@
 #include <tlx/math/integer_log2.hpp>
 #include <src/omp_write_bits.hpp>
 
+struct no_init_helper_array_config {
+  static uint64_t level_size(const uint64_t, const uint64_t size) {
+    return size;
+  }
+
+  static constexpr bool is_bit_vector = false;
+  static constexpr bool requires_initialization = false;
+}; // struct no_init_helper_array_config
+
+using no_init_helper_array = flat_two_dim_array<uint64_t, no_init_helper_array_config>;
+
 class wt_ppc_nodebased {
 public:
 
 // prefix counting for wavelet subtree
 // combination of wt_pc and ppc
-template <typename sym_t, typename idx_t>
-static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
+template <typename sym_t, typename idx_t, typename A>
+static void start(wt_bits_t& bits, const std::vector<sym_t, A>& text, const size_t h) {
 
     const size_t n = text.size();
     const size_t sigma = 1ULL << h; // we need the next power of two!
@@ -69,16 +80,16 @@ static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t 
         }
     }
 
-#pragma omp parallel num_threads(std::min(h - 1, static_cast<size_t>(omp_get_max_threads())))
+    const int old_max_threads = omp_get_max_threads();
+    const size_t used_threads = std::min(h - 1, static_cast<size_t>(old_max_threads));
+    no_init_helper_array shared_counts(used_threads, sigma / 2);
+
+#pragma omp parallel num_threads(used_threads)
     {
-        std::vector<idx_t> count;
+        auto&& count = shared_counts[omp_get_thread_num()]; 
 #pragma omp for schedule(nonmonotonic : dynamic, 1)
         for (size_t level = h - 1; level > 0; --level) {
-            if (count.empty()) {
-                count.resize(sigma / 2, 0);
-            }else{
-                std::fill(count.begin(), count.end(), 0); // reset counters
-            }
+            std::fill_n(count.data(), count.size(), 0); // reset counters
 
             const size_t glob_offs = (1ULL << level) - 1;
 
@@ -101,12 +112,14 @@ static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t 
             }
         }
     }
+
+    omp_set_num_threads(old_max_threads);
 }
 
 // prefix counting
-template <typename sym_t, typename idx_t>
+template <typename sym_t, typename idx_t, typename A>
 static void
-start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
+start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t, A>& text) {
     start<sym_t, idx_t>(bits, text, wt.height());
 }
 

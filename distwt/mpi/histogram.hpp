@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pwm/arrays/helper_array.hpp>
+
 #include <distwt/common/histogram.hpp>
 #include <distwt/mpi/context.hpp>
 #include <distwt/mpi/file_partition_reader.hpp>
@@ -10,6 +12,8 @@
 
 #include <algorithm>
 #include <tlx/math/integer_log2.hpp>
+
+#include <omp.h>
 
 template<typename sym_t>
 class Histogram : public HistogramBase<sym_t, idx_t> {
@@ -38,16 +42,33 @@ private:
 
         {
             // compute local histogram
-            std::unordered_map<sym_t, idx_t> local_hist;
+            std::vector<std::unordered_map<sym_t, idx_t>> sharded_hists(omp_get_max_threads());
 
-            input.process_local([&](sym_t c){
-                auto it = local_hist.find(c);
-                if(it != local_hist.end()) {
-                    ++it->second;
+            const auto map_inserter = [](std::unordered_map<sym_t, idx_t>& map, const sym_t c, const idx_t num = 1) {
+                auto it = map.find(c);
+                if(it != map.end()) {
+                    it->second += num;
                 } else {
-                    local_hist.emplace(c, 1);
+                    map.emplace(c, num);
                 }
-            }, rdbufsize);
+            };
+
+#pragma omp parallel
+            {
+                auto& hist = sharded_hists[omp_get_thread_num()];
+                input.process_local_omp([&] (const size_t, sym_t c) {
+                    map_inserter(hist, c);
+                }, rdbufsize);
+            }
+
+            // Accumulate the histograms
+            auto& local_hist = sharded_hists[0];
+            for(size_t shard = 1; shard < sharded_hists.size(); shard++) {
+                const auto& shard_hist = sharded_hists[shard];
+                for(const auto& pair : shard_hist) {
+                    map_inserter(local_hist, pair.first, pair.second);
+                }
+            }
 
             // distribute using tree-like communication
             {
@@ -181,15 +202,30 @@ inline void Histogram<uint8_t>::compute_histogram(
 
     constexpr size_t SIGMA_MAX = 256ULL;
 
-    // compute local histogram
-    size_t local_hist[SIGMA_MAX] = {0};
-    input.process_local([&](uint8_t c){
-        ++local_hist[c];
+    helper_array sharded_hists(omp_get_max_threads(), SIGMA_MAX);
+
+#pragma omp parallel
+{
+    const auto shard = omp_get_thread_num();
+    auto&& hist = sharded_hists[shard];
+
+    input.process_local_omp([&](const size_t, uint8_t c){
+        ++hist[c];
     }, rdbufsize);
+}
+
+    // Accumulate the histograms
+    auto&& local_hist = sharded_hists[0];
+#pragma omp parallel for schedule(nonmonotonic : dynamic, 1)
+    for (uint64_t j = 0; j < SIGMA_MAX; ++j) {
+        for (uint64_t shard = 1; shard < sharded_hists.levels(); ++shard) {
+            local_hist[j] += sharded_hists[shard][j];
+        }
+    }
 
     // distribute
     size_t hist[SIGMA_MAX] = {0};
-    ctx.all_reduce(local_hist, hist, SIGMA_MAX);
+    ctx.all_reduce(local_hist.data(), hist, SIGMA_MAX);
 
     // extract nonzero entries
     for(size_t c = 0; c < SIGMA_MAX; c++) {

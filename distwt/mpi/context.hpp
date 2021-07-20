@@ -44,7 +44,8 @@ private:
     double m_start_time;
 
     Traffic m_local_traffic;
-    size_t m_alloc_current, m_alloc_max;
+    int64_t m_alloc_current, m_alloc_max;
+    bool m_enable_alloc_count;
 
     void count_traffic_tx(size_t target, size_t bytes);
     void count_traffic_rx(size_t source, size_t bytes);
@@ -52,12 +53,12 @@ private:
     void count_traffic_tx_est(size_t target, size_t bytes);
     void count_traffic_rx_est(size_t source, size_t bytes);
 
-    void track_alloc(size_t size);
-    void track_free(size_t size);
-
 public:
     MPIContext(int* argc, char*** argv);
     ~MPIContext();
+
+    void track_alloc(size_t size);
+    void track_free(size_t size);
 
     inline double time() const { return MPI_Wtime(); }
 
@@ -99,6 +100,10 @@ public:
 
     inline size_t local_alloc_current() const { return m_alloc_current; }
     inline size_t local_alloc_max() const { return m_alloc_max; }
+
+    inline void enable_alloc_count(const bool enable) noexcept {
+        m_enable_alloc_count = enable;
+    }
 
     Traffic gather_traffic() const;
     size_t gather_max_alloc() const;

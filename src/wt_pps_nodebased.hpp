@@ -182,8 +182,8 @@ public:
 class wt_pps_nodebased {
 public:
 
-template <typename sym_t, typename idx_t>
-static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t h) {
+template <typename sym_t, typename idx_t, typename A>
+static void start(wt_bits_t& bits, const std::vector<sym_t, A>& text, const size_t h) {
     using ctx_t = ctx_generic<true,
                             ctx_options::borders::sharded_single_level,
                             ctx_options::hist::sharded_single_level,
@@ -197,9 +197,9 @@ static void start(wt_bits_t& bits, const std::vector<sym_t>& text, const size_t 
 }
 
 // prefix sorting
-template <typename sym_t, typename idx_t>
+template <typename sym_t, typename idx_t, typename A>
 static void
-start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t>& text) {
+start(const WaveletTreeBase& wt, wt_bits_t& bits, const std::vector<sym_t, A>& text) {
     start<sym_t, idx_t>(bits, text, wt.height());
 }
 

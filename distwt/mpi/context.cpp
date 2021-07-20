@@ -20,7 +20,8 @@ MPIContext::MPIContext(int* argc, char*** argv)
     : m_comm(MPI_COMM_WORLD),
       m_alloc_current(0),
       m_alloc_max(0),
-      m_local_traffic({0,0,0,0,0,0}) {
+      m_local_traffic({0,0,0,0,0,0}),
+      m_enable_alloc_count(true) {
 
     assert(!m_current);
     {
@@ -99,11 +100,13 @@ void MPIContext::count_traffic_rx_est(size_t source, size_t bytes) {
 }
 
 void MPIContext::track_alloc(size_t size) {
+    if(!m_enable_alloc_count) return;
     m_alloc_current += size;
     m_alloc_max = std::max(m_alloc_max, m_alloc_current);
 }
 
 void MPIContext::track_free(size_t size) {
+    if(!m_enable_alloc_count) return;
     assert(m_alloc_current >= size);
     m_alloc_current -= size;
 }

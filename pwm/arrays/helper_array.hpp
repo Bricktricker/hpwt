@@ -6,6 +6,7 @@
  * All rights reserved. Published under the BSD-2 license in the LICENSE file.
  ******************************************************************************/
 #pragma once
+#include <pwm/arrays/flat_two_dim_array.hpp>
 
 struct helper_array_config {
   static uint64_t level_size(const uint64_t, const uint64_t size) {
