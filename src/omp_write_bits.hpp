@@ -91,9 +91,11 @@ inline void omp_write_bits_vec(uint64_t start, uint64_t end, bv_t& level_bv, loo
     const auto omp_rank = omp_get_thread_num();
     const auto omp_size = omp_get_num_threads();
 
-    uint64_t const start_filler = start & 63ULL;
+    constexpr size_t SPACING = 512ULL; //Bits
+
+    uint64_t const start_filler = start & (SPACING-1);
     if (start_filler) {
-        const size_t end_fill = std::min(uint64_t(64ULL) - start_filler, end - start);
+        const size_t end_fill = std::min(uint64_t(SPACING) - start_filler, end - start);
         if ((omp_rank + 1) == omp_size) {
             for (size_t i = 0; i < end_fill; i++) {
                 level_bv.set(start + i, body(start + i));
@@ -103,18 +105,20 @@ inline void omp_write_bits_vec(uint64_t start, uint64_t end, bv_t& level_bv, loo
     }
 
 #pragma omp for
-    for (int64_t scur_pos = start; scur_pos <= (int64_t(end) - 64); scur_pos += 64) {
+    for (int64_t scur_pos = start; scur_pos <= (int64_t(end) - int64_t(SPACING)); scur_pos += int64_t(SPACING)) {
         DCHECK(scur_pos >= 0);
-        // fills the 64 bit block with bits, than write that into the bit vector
-        uint64_t val = 0;
-        for (size_t i = 0; i < 64; i++) {
-            const bool bit = body(scur_pos + i);
-            val |= static_cast<uint64_t>(bit) << (64 - i - 1);
+        for(size_t block = 0; block < SPACING; block += 64) {
+            // fills the 64 bit block with bits, than write that into the bit vector
+            uint64_t val = 0;
+            for (size_t i = 0; i < 64; i++) {
+                const bool bit = body(scur_pos + block + i);
+                val |= static_cast<uint64_t>(bit) << (64 - i - 1);
+            }
+            level_bv.data()[(scur_pos + block) / 64] = val;
         }
-        level_bv.data()[scur_pos / 64] = val;
     }
 
-    uint64_t const remainder = (end - start) & 63ULL;
+    uint64_t const remainder = (end - start) & (SPACING-1);
     if (remainder && ((omp_rank + 1) == omp_size)) {
         const auto scur_pos = end - remainder;
         for (size_t i = 0; i < remainder; i++) {

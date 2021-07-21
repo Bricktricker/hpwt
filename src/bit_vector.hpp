@@ -4,6 +4,7 @@
 #include <pwm/util/debug_assert.hpp>
 #include <tlx/math/div_ceil.hpp>
 #include <vector>
+#include <src/alignment_allocator.hpp>
 
 class bit_vector {
     constexpr static size_t BLOCK_SIZE = 64ULL;
@@ -125,6 +126,6 @@ class bit_vector {
     }
 
   private:
-    std::vector<uint64_t> m_buffer;
+    std::vector<uint64_t, Alignment_allocator<uint64_t>> m_buffer;
     size_t m_num_bits;
 };
