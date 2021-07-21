@@ -19,4 +19,15 @@ struct helper_array_config {
 
 using helper_array = flat_two_dim_array<uint64_t, helper_array_config>;
 
+struct no_init_helper_array_config {
+  static uint64_t level_size(const uint64_t, const uint64_t size) {
+    return size;
+  }
+
+  static constexpr bool is_bit_vector = false;
+  static constexpr bool requires_initialization = false;
+}; // struct no_init_helper_array_config
+
+using no_init_helper_array = flat_two_dim_array<uint64_t, no_init_helper_array_config>;
+
 /******************************************************************************/

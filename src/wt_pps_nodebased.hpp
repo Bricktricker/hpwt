@@ -6,6 +6,7 @@
 #include <pwm/construction/building_blocks.hpp>
 #include <pwm/util/common.hpp>
 #include <pwm/arrays/bit_vectors.hpp>
+#include <pwm/arrays/helper_array.hpp>
 
 #include <omp.h>
 #include <src/omp_write_bits.hpp>
@@ -24,6 +25,8 @@ void pps(AlphabetType const* text,
   auto offsets = span<uint64_t>(offsets_);
   bv[0].resize(size);
   auto&& zeros = ctx.zeros();
+
+  no_init_helper_array borders_aligned_(omp_get_max_threads(), 1ULL << (levels-1));
 
   #pragma omp parallel
   {
@@ -130,8 +133,8 @@ void pps(AlphabetType const* text,
 
       // We align the borders (in memory) to increase performance by reducing
       // the number of cache misses
-      std::vector<uint64_t> borders_aligned_(1ULL << level, 0);
-      span<uint64_t> borders_aligned(borders_aligned_);
+      span<uint64_t> borders_aligned = borders_aligned_[omp_rank].slice(0, 1ULL << level);
+      std::fill_n(borders_aligned.data(), borders_aligned.size(), 0ULL);
       {
         auto&& borders = ctx.borders_at_shard(omp_rank);
         for (uint64_t i = 0; i < alphabet_size; i += (1ULL << prefix_shift)) {

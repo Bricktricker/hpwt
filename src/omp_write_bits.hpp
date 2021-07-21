@@ -42,13 +42,13 @@ inline void omp_copy_bits(bv_t& dst, const uint64_t* src, size_t start, const si
 
         // extra handling when we need to copy less than N bits
         if (end - start < N - block_offs) {
-            if(omp_rank == 0) {
+            if (omp_rank == 0) {
                 const size_t bits_left = (end - start) % N;
                 const auto bits_left_mask = ((1ULL << bits_left) - 1) << (N - bits_left);
                 dst.data()[start_block] |= (src[0] & bits_left_mask) >> block_offs;
             }
             return;
-        } else if(omp_rank == 0) {
+        } else if (omp_rank == 0) {
             // copy the higest inv_block_offs bits from src[0] into the lowest bits from dst
             dst.data()[start_block] |= src[0] >> block_offs;
         }
@@ -69,12 +69,12 @@ inline void omp_copy_bits(bv_t& dst, const uint64_t* src, size_t start, const si
 
                 // copy the lowest block_offs bits from src_block into the highest block_offs bits of dst
                 dst.data()[end_block] |= (src[src_block] & mask) << inv_block_offs;
-                
+
                 src_block++;
-                
+
                 // mask that has the highest (bits_left - block_offs) bits set
                 const auto bits_left_mask = ((1ULL << (bits_left - block_offs)) - 1) << (N - (bits_left - block_offs));
-                
+
                 dst.data()[end_block] |= (src[src_block] & bits_left_mask) >> block_offs;
             } else {
                 const size_t src_block = (end_block - start_block) - 1;
@@ -105,7 +105,7 @@ inline void omp_write_bits_vec(uint64_t start, uint64_t end, bv_t& level_bv, loo
 #pragma omp for
     for (int64_t scur_pos = start; scur_pos <= (int64_t(end) - 64); scur_pos += 64) {
         DCHECK(scur_pos >= 0);
-        //fills the 64 bit block with bits, than write that into the bit vector
+        // fills the 64 bit block with bits, than write that into the bit vector
         uint64_t val = 0;
         for (size_t i = 0; i < 64; i++) {
             const bool bit = body(scur_pos + i);
@@ -130,18 +130,14 @@ inline void omp_write_bits_level(const uint64_t level, wt_bits_t& bits, loop_bod
     const size_t num_nodes_level = 1ULL << level;
     const size_t nodes_offset = num_nodes_level - 1;
 
-#pragma omp for
+    size_t bits_offset = 0;
     for (size_t node = 0; node < num_nodes_level; node++) {
         const size_t glob_node = nodes_offset + node;
         const size_t num_bits = bits[glob_node].size();
 
-        // count number of bits in previous nodes
-        const size_t bits_offset = std::accumulate(
-            std::next(bits.begin(), nodes_offset), std::next(bits.begin(), glob_node), 0,
-            [](const size_t acc, const auto& vec) { return acc + vec.size(); });
-
-        for (size_t i = 0; i < num_bits; i++) {
-            bits[glob_node].set(i, body(bits_offset + i));
-        }
+        omp_write_bits_vec(0, num_bits, bits[glob_node], [&](const uint64_t pos) {
+            return body(bits_offset + pos);
+        });
+        bits_offset += num_bits;
     }
 }
