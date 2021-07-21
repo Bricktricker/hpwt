@@ -11,6 +11,7 @@ using wt_bits_t = WaveletTree::bits_t;
 // start = offset in bits into dst, end = last bit + 1 position to write into dst, src reading
 // allways starts at 0
 inline void omp_copy_bits(bv_t& dst, const uint64_t* src, size_t start, const size_t end) {
+    DCHECK_LE(end, dst.size());
     const auto omp_rank = omp_get_thread_num();
     const auto omp_size = omp_get_num_threads();
 
@@ -104,9 +105,13 @@ inline void omp_write_bits_vec(uint64_t start, uint64_t end, bv_t& level_bv, loo
 #pragma omp for
     for (int64_t scur_pos = start; scur_pos <= (int64_t(end) - 64); scur_pos += 64) {
         DCHECK(scur_pos >= 0);
+        //fills the 64 bit block with bits, than write that into the bit vector
+        uint64_t val = 0;
         for (size_t i = 0; i < 64; i++) {
-            level_bv.set(scur_pos + i, body(scur_pos + i));
+            const bool bit = body(scur_pos + i);
+            val |= static_cast<uint64_t>(bit) << (64 - i - 1);
         }
+        level_bv.data()[scur_pos / 64] = val;
     }
 
     uint64_t const remainder = (end - start) & 63ULL;

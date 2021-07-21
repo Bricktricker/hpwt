@@ -52,10 +52,12 @@ private:
         auto node_sizes = WaveletTreeBase::node_sizes(hist);
 
         bits.resize(this->height());
-        bits[0] = m_bits[0]; // simply copy root
 
+        // simply copy root
         if(discard) {
-            m_bits[0].clear();
+            bits[0] = std::move(m_bits[0]);
+        }else{
+            bits[0] = m_bits[0];
         }
 
         // Part 1 - Distribute local offsets for all nodes

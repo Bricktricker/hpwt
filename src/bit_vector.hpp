@@ -17,6 +17,20 @@ class bit_vector {
     bit_vector(const size_t num_bits)
         : m_buffer(tlx::div_ceil(num_bits, BLOCK_SIZE), 0U), m_num_bits(0U) {}
 
+    bit_vector& operator=(const bit_vector&) = default;
+
+    bit_vector(bit_vector&& other)
+        : m_buffer{std::move(other.m_buffer)}, m_num_bits(other.m_num_bits)
+    {
+        other.m_num_bits = 0U;
+    }
+
+    bit_vector& operator=(bit_vector&& other) {
+        std::swap(m_buffer, other.m_buffer);
+        std::swap(m_num_bits, other.m_num_bits);
+        return *this;
+    }
+
     [[nodiscard]] bool get(const size_t idx) const {
         const size_t block = get_block(idx);
         DCHECK_LT(block, num_blocks());
