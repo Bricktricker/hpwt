@@ -176,7 +176,7 @@ public:
     void process_local_omp(std::function<void(size_t, sym_t)> func, size_t bufsize) const {
         if(m_buffered) {
 #pragma omp for
-            for (int64_t scur_pos = 0; scur_pos <= (int64_t(m_buffer.size()) - int64_t(CACHELINE_SIZE)); scur_pos += CACHELINE_SIZE) {
+            for (int64_t scur_pos = 0; scur_pos <= (int64_t(m_buffer.size()) - CACHELINE_SIZE); scur_pos += CACHELINE_SIZE) {
                 DCHECK(scur_pos >= 0);
                 for (size_t i = 0; i < CACHELINE_SIZE; i++) {
                     const size_t idx = scur_pos + i;
