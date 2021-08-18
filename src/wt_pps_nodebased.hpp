@@ -11,7 +11,7 @@
 #include <omp.h>
 #include <src/omp_write_bits.hpp>
 
-// pps from the distwt repositiory, include/construction/pps.hpp
+// pps from the PWM repositiory, include/construction/pps.hpp
 template <typename AlphabetType, typename ContextType>
 void pps(AlphabetType const* text,
          const uint64_t size,
